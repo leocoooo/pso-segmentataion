@@ -114,10 +114,7 @@ def _expand_param_grid(param_grid: ParamGrid | None) -> list[ParamSet]:
         msg = f"param_grid values must be non-empty, got empty values for {empty_keys}"
         raise ValueError(msg)
 
-    return [
-        dict(zip(keys, values, strict=True))
-        for values in product(*values_by_key)
-    ]
+    return [dict(zip(keys, values, strict=True)) for values in product(*values_by_key)]
 
 
 def _metric_score(metrics: SegmentationResult, metric: SelectionMetric) -> float:
@@ -182,7 +179,9 @@ def select_n_segments(
         msg = f"labels must be 1D array, got shape {labels_arr.shape}"
         raise ValueError(msg)
     if len(scores_arr) != len(labels_arr):
-        msg = f"scores and labels must have same length, got {len(scores_arr)} and {len(labels_arr)}"
+        msg = (
+            f"scores and labels must have same length, got {len(scores_arr)} and {len(labels_arr)}"
+        )
         raise ValueError(msg)
 
     segment_counts = _normalize_segment_range(segment_range)
@@ -222,7 +221,9 @@ def select_n_segments(
                 candidate.selection_score = float(selection_func(candidate))
             candidates.append(candidate)
 
-    selectable = [candidate for candidate in candidates if candidate.valid] if require_valid else candidates
+    selectable = (
+        [candidate for candidate in candidates if candidate.valid] if require_valid else candidates
+    )
     if not selectable:
         msg = "No valid segmentation found for the provided segment_range"
         raise RuntimeError(msg)
