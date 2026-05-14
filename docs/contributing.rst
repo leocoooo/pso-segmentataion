@@ -13,7 +13,7 @@ Getting Started
 
    .. code-block:: bash
 
-      git clone https://github.com/yourusername/pso-segmentation.git
+      git clone <repository-url>
       cd pso-segmentation
 
 2. **Create Virtual Environment**

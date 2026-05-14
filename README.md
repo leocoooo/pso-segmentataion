@@ -2,135 +2,119 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org/)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A robust, professional-grade Python package for segmentation optimization using Particle Swarm Optimization (PSO).
+`pso-segmentation` is a PSO-based package for building interpretable score segmentation models.
 
-## 🎯 Overview
+## Overview
 
-`pso-segmentation` provides a flexible and extensible framework for optimizing segmentation of continuous variables (scores) using custom objective functions. It features:
+The package gives you a compact way to:
 
-- **Custom PSO Implementation**: Pure Python, no heavy external dependencies
-- **Flexible Objective Functions**: Users define their own fitness functions
-- **Hybrid API**: Object-oriented for advanced users, functional API for quick usage
-- **Comprehensive History Tracking**: Monitor optimization convergence across iterations
-- **Serialization Support**: Export and import optimized segments
-- **Type-Safe**: Full type hints with mypy strict mode
+- optimize cut points on continuous scores
+- enforce business constraints such as monotonicity and segment size
+- select the number of segments with a dedicated helper
+- export results and persist optimizer state
+- compare candidates with a business-specific selection function
 
-## 📦 Installation
-
-Install from PyPI:
+## Installation
 
 ```bash
 pip install pso-segmentation
 ```
 
-Or with visualization support:
+For development and documentation work:
 
 ```bash
-pip install pso-segmentation[viz]
+pip install -e ".[dev,docs]"
 ```
 
-Or with full development dependencies:
+## Quick Start
 
-```bash
-pip install pso-segmentation[all]
-```
-
-## 🚀 Quick Start
-
-### Simple Usage (Functional API)
+### Functional API
 
 ```python
 import numpy as np
-from pso_segmentation import segment_scores, example_fitness_function
+from pso_segmentation import example_fitness_r2_only, segment_scores
 
-# Your data
 scores = np.random.uniform(0, 100, 1000)
 labels = np.random.binomial(1, 0.15, 1000)
 
-# One-liner segmentation
-cuts = segment_scores(scores, labels, example_fitness_function)
-print(f"Optimal cuts: {cuts}")
+result = segment_scores(
+    scores,
+    labels,
+    lambda cuts: example_fitness_r2_only(cuts, scores, labels),
+)
+
+print(f"R2: {result.r2:.3f}")
+print(f"Segments: {result.n_segments}")
 ```
 
-### Advanced Usage (OO API)
+### Object-Oriented API
 
 ```python
-from pso_segmentation import SegmentationOptimizer, OptimizerConfig, example_fitness_function
-
-# Configure optimizer
-config = OptimizerConfig(
-    pop_size=50,
-    max_iter=100,
-    n_segments=5,
-    seed=42,
+import numpy as np
+from pso_segmentation import (
+    OptimizerConfig,
+    SegmentationOptimizer,
+    example_fitness_r2_with_all_constraints,
 )
 
-# Create and fit optimizer
-optimizer = SegmentationOptimizer(
-    objective_func=example_fitness_function,
-    config=config
-)
-optimizer.fit(scores, labels)
+scores = np.random.uniform(0, 100, 1000)
+labels = np.random.binomial(1, 0.15, 1000)
 
-# Analyze results
+config = OptimizerConfig(n_segments=5, pop_size=50, max_iter=100, seed=42)
+optimizer = SegmentationOptimizer(config)
+optimizer.fit(
+    scores,
+    labels,
+    lambda cuts: example_fitness_r2_with_all_constraints(cuts, scores, labels),
+)
+
 print(optimizer.summary())
-optimizer.get_history()  # DataFrame with convergence history
-optimizer.get_metrics(scores, labels)  # Detailed metrics
+print(optimizer.get_metrics())
 ```
 
-## 📖 Documentation
+### Selecting the number of segments
 
-Full documentation available at [Read the Docs](https://pso-segmentation.readthedocs.io)
+```python
+from pso_segmentation import select_n_segments
 
-### Key Resources
+selection = select_n_segments(
+    scores,
+    labels,
+    segment_range=(3, 7),
+    selection_metric="r2",
+)
 
-- [Installation Guide](https://pso-segmentation.readthedocs.io/en/latest/installation.html)
-- [Getting Started](https://pso-segmentation.readthedocs.io/en/latest/quickstart.html)
-- [Advanced Configuration](https://pso-segmentation.readthedocs.io/en/latest/guides/advanced_config.html)
-- [API Reference](https://pso-segmentation.readthedocs.io/en/latest/api/)
-
-## 🛠️ Development
-
-Clone and install in development mode:
-
-```bash
-git clone https://github.com/yourusername/pso-segmentation.git
-cd pso-segmentation
-pip install -e ".[all]"
+print(selection.best_candidate.n_segments)
+print(selection.best_candidate.cuts)
 ```
 
-### Running Tests
+## Documentation
+
+The full user guide lives in the `docs/` folder and the business-oriented walkthrough is in
+`notebooks/`.
+
+## Development
+
+Run the test and quality checks from the repository root:
 
 ```bash
 pytest
+ruff check .
+ruff format .
+mypy src/
 ```
 
-### Code Quality Checks
+## License
 
-```bash
-ruff format .        # Format code
-ruff check .         # Lint
-mypy src/            # Type checking
-pytest               # Tests with coverage
-```
+MIT License - see [LICENSE](LICENSE).
 
-## 📝 License
+## Contributing
 
-MIT License - see [LICENSE](LICENSE) file for details
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and contribution rules.
 
-## 🤝 Contributing
+## Status
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## 🔮 Roadmap
-
-- [x] Core PSO engine
-- [ ] Additional optimization algorithms (v1.1+)
-- [ ] Advanced visualization tools (v1.1+)
-- [ ] Multi-objective optimization (v2.0+)
-
-## ⚠️ Status
-
-**Version 0.1.0**: Early Alpha - API may change before v1.0 release.
+Version 0.1.0 is the current alpha release line. The package API is stable enough for
+experimentation, notebooks, and internal use, while production release work continues.

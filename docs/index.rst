@@ -76,7 +76,7 @@ Or install from source:
 
 .. code-block:: bash
 
-   git clone https://github.com/yourusername/pso-segmentation.git
+   git clone <repository-url>
    cd pso-segmentation
    pip install -e .
 

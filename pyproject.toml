@@ -37,12 +37,6 @@ docs = ["sphinx>=5.0", "sphinx-rtd-theme", "myst-parser"]
 dev = ["pytest>=7.0", "ruff", "mypy", "pytest-cov"]
 all = ["pso-segmentation[viz,docs,dev]"]
 
-[project.urls]
-Homepage = "https://github.com/yourusername/pso-segmentation"
-Documentation = "https://pso-segmentation.readthedocs.io"
-Repository = "https://github.com/yourusername/pso-segmentation"
-Issues = "https://github.com/yourusername/pso-segmentation/issues"
-
 [tool.hatch.version]
 path = "src/pso_segmentation/__init__.py"
 
