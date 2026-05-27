@@ -14,7 +14,7 @@ from typing import Any, Literal
 
 import numpy as np
 
-from pso_segmentation.examples import example_fitness_r2_only
+from pso_segmentation.objective_functions_examples import example_fitness_r2_only
 from pso_segmentation.optimizer import OptimizerConfig, SegmentationOptimizer
 from pso_segmentation.segmentation import SegmentationResult, validate_segmentation
 

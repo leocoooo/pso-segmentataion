@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from pso_segmentation.api import segment_scores
-from pso_segmentation.examples import (
+from pso_segmentation.objective_functions_examples import (
     example_fitness_custom_business_metric,
     example_fitness_gini_focused,
     example_fitness_r2_only,
