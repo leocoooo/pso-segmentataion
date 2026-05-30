@@ -108,7 +108,7 @@ Constraint Implementation Patterns
 
 **Monotonicity Constraint**
 
-Enforce target mean increasing across segments (PD for binary targets):
+Enforce target mean increasing across segments:
 
 .. code-block:: python
 

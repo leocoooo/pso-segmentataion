@@ -28,13 +28,13 @@ A: 200-500 iterations usually suffice for convergence. Monitor the fitness histo
 
 **Q: Can I enforce monotonic target mean?**
 
-A: Yes, via the objective function. Use `make_objective(..., penalties=[monotonic_penalty(weight=...)])` or provide your own penalty callable. For PD use cases, the target mean corresponds to default rate.
+A: Yes, via the objective function. Use `make_objective(..., penalties=[monotonic_penalty(weight=...)])` or provide your own penalty callable. The built-in penalty checks the segment-level target mean.
 
 ---
 
 **Q: How do I handle imbalanced data?**
 
-A: If your target is binary, the segment target means (PD) reflect imbalance. For extremely imbalanced data, add a balance penalty to the fitness function.
+A: If your target is binary, the segment target means reflect class imbalance. For extremely imbalanced data, add a balance penalty to the fitness function.
 
 ---
 

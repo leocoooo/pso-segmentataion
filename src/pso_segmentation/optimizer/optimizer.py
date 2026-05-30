@@ -258,7 +258,7 @@ class SegmentationOptimizer:
             "=" * 60,
             "SEGMENTATION OPTIMIZER RESULTS",
             "=" * 60,
-            "Target mean = segment average of labels (PD for binary targets)",
+            "Target mean = segment average of labels",
             f"R² (Variance Explained): {metrics.r2:.4f}",
             f"Number of Segments: {metrics.n_segments}",
             "",
@@ -277,7 +277,7 @@ class SegmentationOptimizer:
 
         for i in range(metrics.n_segments):
             segment_pct = metrics.segment_proportions[i] * 100
-            target_pct = metrics.pd_by_segment[i] * 100
+            target_pct = metrics.target_mean_by_segment[i] * 100
             lines.append(
                 f"  Segment {i}: Target mean={target_pct:.2f}%, "
                 f"Size={segment_pct:.2f}% (n={int(metrics.segment_sizes[i])})"
@@ -315,9 +315,8 @@ class SegmentationOptimizer:
             "cuts": self._cuts.tolist() if self._cuts is not None else None,
             "r2": float(self._result.r2) if self._result else None,
             "n_segments": self._result.n_segments if self._result else None,
-            "pd_by_segment": (self._result.pd_by_segment.tolist() if self._result else None),
             "target_mean_by_segment": (
-                self._result.pd_by_segment.tolist() if self._result else None
+                self._result.target_mean_by_segment.tolist() if self._result else None
             ),
             "segment_sizes": (self._result.segment_sizes.tolist() if self._result else None),
             "segment_proportions": (
@@ -388,13 +387,15 @@ class SegmentationOptimizer:
 
         # Restore segmentation result if present
         if (
-            all(k in data for k in ["r2", "n_segments", "pd_by_segment"])
+            all(k in data for k in ["r2", "n_segments", "target_mean_by_segment"])
             and data.get("r2") is not None
         ):
             optimizer._result = SegmentationResult(
                 r2=data["r2"],
                 n_segments=data["n_segments"],
-                pd_by_segment=np.array(data["pd_by_segment"], dtype=np.float64),
+                target_mean_by_segment=np.array(
+                    data["target_mean_by_segment"], dtype=np.float64
+                ),
                 segment_sizes=np.array(data["segment_sizes"], dtype=np.float64),
                 segment_proportions=np.array(data["segment_proportions"], dtype=np.float64),
                 h_inter=data["h_inter"],

@@ -32,8 +32,7 @@ def export_segmentation_to_csv(
     """Export segmentation results to CSV files.
 
     Saves segmentation cuts, data with assignments, and segment-level metrics
-    to CSV files. The metrics file includes ``target_mean`` for generic use
-    cases and ``pd_rate`` as a backward-compatible alias.
+    to CSV files. The metrics file includes ``target_mean``.
 
     Parameters
     ----------
@@ -140,7 +139,6 @@ def export_segmentation_to_csv(
                 "n_observations": n_obs_val,
                 "proportion": float(proportion),
                 "target_mean": target_mean,
-                "pd_rate": target_mean,
                 "min_score": min_score,
                 "max_score": max_score,
             }
@@ -346,8 +344,7 @@ def export_metrics_to_json(
         "h_inter": float(result.h_inter),
         "h_intra": float(result.h_intra),
         "segment_proportions": result.segment_proportions.tolist(),
-        "pd_by_segment": result.pd_by_segment.tolist(),
-        "target_mean_by_segment": result.pd_by_segment.tolist(),
+        "target_mean_by_segment": result.target_mean_by_segment.tolist(),
         "segment_sizes": result.segment_sizes.tolist(),
     }
 

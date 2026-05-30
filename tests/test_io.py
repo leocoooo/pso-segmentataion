@@ -42,7 +42,7 @@ def sample_result(
     result = SegmentationResult(
         r2=0.65,
         n_segments=4,
-        pd_by_segment=np.array([0.1, 0.3, 0.6, 0.9]),
+        target_mean_by_segment=np.array([0.1, 0.3, 0.6, 0.9]),
         segment_sizes=np.array([50, 50, 50, 50]),
         segment_proportions=np.array([0.25, 0.25, 0.25, 0.25]),
         h_inter=0.12,
@@ -107,7 +107,6 @@ class TestExportSegmentationToCsv:
                 "n_observations",
                 "proportion",
                 "target_mean",
-                "pd_rate",
                 "min_score",
                 "max_score",
             }
@@ -289,7 +288,7 @@ class TestExportMetricsToJson:
                 "h_inter",
                 "h_intra",
                 "segment_proportions",
-                "pd_by_segment",
+                "target_mean_by_segment",
                 "segment_sizes",
             }
             assert expected_keys.issubset(data.keys())

@@ -25,7 +25,7 @@ class TestComputeMetrics:
 
         assert isinstance(result, SegmentationResult)
         assert result.n_segments == 2
-        assert len(result.pd_by_segment) == 2
+        assert len(result.target_mean_by_segment) == 2
         assert len(result.segment_sizes) == 2
 
     def test_compute_metrics_multiple_cuts(self) -> None:
@@ -62,16 +62,16 @@ class TestComputeMetrics:
 
         assert np.isclose(np.sum(result.segment_proportions), 1.0)
 
-    def test_compute_metrics_pd_range(self) -> None:
-        """Test PD values are in [0, 1]."""
+    def test_compute_metrics_target_mean_range(self) -> None:
+        """Test target mean values are in [0, 1] for binary labels."""
         scores = np.random.uniform(0, 100, 100)
         labels = np.random.binomial(1, 0.3, 100)
         cuts = np.array([25.0, 50.0, 75.0])
 
         result = compute_metrics(scores, labels, cuts)
 
-        assert np.all(result.pd_by_segment >= 0.0)
-        assert np.all(result.pd_by_segment <= 1.0)
+        assert np.all(result.target_mean_by_segment >= 0.0)
+        assert np.all(result.target_mean_by_segment <= 1.0)
 
     def test_compute_metrics_list_cuts(self) -> None:
         """Test compute_metrics accepts list of cuts."""
@@ -163,7 +163,7 @@ class TestSegmentationResult:
         return SegmentationResult(
             r2=0.75,
             n_segments=4,
-            pd_by_segment=np.array([0.1, 0.2, 0.3, 0.4]),
+            target_mean_by_segment=np.array([0.1, 0.2, 0.3, 0.4]),
             segment_sizes=np.array([100, 150, 120, 130]),
             segment_proportions=np.array([0.2, 0.3, 0.24, 0.26]),
             h_inter=0.05,
@@ -179,7 +179,7 @@ class TestSegmentationResult:
         non_monotonic = SegmentationResult(
             r2=0.75,
             n_segments=3,
-            pd_by_segment=np.array([0.1, 0.4, 0.2]),  # Not monotonic
+            target_mean_by_segment=np.array([0.1, 0.4, 0.2]),  # Not monotonic
             segment_sizes=np.array([100, 150, 120]),
             segment_proportions=np.array([0.25, 0.375, 0.375]),
             h_inter=0.05,
@@ -192,7 +192,7 @@ class TestSegmentationResult:
         decreasing = SegmentationResult(
             r2=0.75,
             n_segments=4,
-            pd_by_segment=np.array([0.4, 0.3, 0.2, 0.1]),
+            target_mean_by_segment=np.array([0.4, 0.3, 0.2, 0.1]),
             segment_sizes=np.array([100, 150, 120, 80]),
             segment_proportions=np.array([0.25, 0.375, 0.30, 0.20]),
             h_inter=0.05,
@@ -218,7 +218,7 @@ class TestSegmentationResult:
         unbalanced = SegmentationResult(
             r2=0.75,
             n_segments=3,
-            pd_by_segment=np.array([0.1, 0.2, 0.3]),
+            target_mean_by_segment=np.array([0.1, 0.2, 0.3]),
             segment_sizes=np.array([10, 100, 100]),
             segment_proportions=np.array([0.05, 0.5, 0.45]),  # max > 0.30
             h_inter=0.05,
@@ -231,7 +231,7 @@ class TestSegmentationResult:
         result = SegmentationResult(
             r2=0.0,
             n_segments=1,
-            pd_by_segment=np.array([0.2]),
+            target_mean_by_segment=np.array([0.2]),
             segment_sizes=np.array([100]),
             segment_proportions=np.array([1.0]),
             h_inter=0.0,
@@ -311,7 +311,7 @@ class TestCheckSegmentStability:
         result1 = SegmentationResult(
             r2=0.75,
             n_segments=3,
-            pd_by_segment=np.array([0.1, 0.2, 0.3]),
+            target_mean_by_segment=np.array([0.1, 0.2, 0.3]),
             segment_sizes=np.array([60, 70, 70]),
             segment_proportions=np.array([0.30, 0.35, 0.35]),
             h_inter=0.05,
@@ -320,7 +320,7 @@ class TestCheckSegmentStability:
         result2 = SegmentationResult(
             r2=0.76,  # Very close
             n_segments=3,
-            pd_by_segment=np.array([0.1, 0.2, 0.3]),
+            target_mean_by_segment=np.array([0.1, 0.2, 0.3]),
             segment_sizes=np.array([60, 70, 70]),
             segment_proportions=np.array([0.30, 0.35, 0.35]),
             h_inter=0.05,
@@ -337,7 +337,7 @@ class TestCheckSegmentStability:
         result1 = SegmentationResult(
             r2=0.75,
             n_segments=3,
-            pd_by_segment=np.array([0.1, 0.2, 0.3]),
+            target_mean_by_segment=np.array([0.1, 0.2, 0.3]),
             segment_sizes=np.array([60, 70, 70]),
             segment_proportions=np.array([0.30, 0.35, 0.35]),
             h_inter=0.05,
@@ -346,7 +346,7 @@ class TestCheckSegmentStability:
         result2 = SegmentationResult(
             r2=0.60,  # Significantly different
             n_segments=3,
-            pd_by_segment=np.array([0.1, 0.2, 0.3]),
+            target_mean_by_segment=np.array([0.1, 0.2, 0.3]),
             segment_sizes=np.array([60, 70, 70]),
             segment_proportions=np.array([0.30, 0.35, 0.35]),
             h_inter=0.05,
@@ -363,7 +363,7 @@ class TestCheckSegmentStability:
         result1 = SegmentationResult(
             r2=0.75,
             n_segments=3,
-            pd_by_segment=np.array([0.1, 0.2, 0.3]),
+            target_mean_by_segment=np.array([0.1, 0.2, 0.3]),
             segment_sizes=np.array([60, 70, 70]),
             segment_proportions=np.array([0.30, 0.35, 0.35]),
             h_inter=0.05,
@@ -372,7 +372,7 @@ class TestCheckSegmentStability:
         result2 = SegmentationResult(
             r2=0.72,  # Diff = 0.03
             n_segments=3,
-            pd_by_segment=np.array([0.1, 0.2, 0.3]),
+            target_mean_by_segment=np.array([0.1, 0.2, 0.3]),
             segment_sizes=np.array([60, 70, 70]),
             segment_proportions=np.array([0.30, 0.35, 0.35]),
             h_inter=0.05,

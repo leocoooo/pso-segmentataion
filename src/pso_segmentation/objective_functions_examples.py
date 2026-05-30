@@ -7,7 +7,7 @@ to implement custom business metrics.
 Each example demonstrates different approaches:
 - Simple R² maximization (generic)
 - R² with constraint penalties (generic templates)
-- Business-specific metrics (e.g., PD-focused constraints)
+- Business-specific metrics
 """
 
 from __future__ import annotations
@@ -71,7 +71,7 @@ def example_fitness_r2_with_monotonic_penalty(
     """Example: R² with penalty for non-monotonic segmentation.
 
     Maximize R² while penalizing violations of monotonic increasing target mean.
-    Useful for risk segmentation where default rate should increase.
+    Useful when the target mean should increase with the score.
 
     Parameters
     ----------
@@ -287,19 +287,19 @@ def example_fitness_gini_focused(
         r2 = float(result.r2)
 
         # Calculate Gini coefficient from segment proportions
-        # Sorted by segment index (which should be sorted by PD if monotonic)
+        # Sorted by segment index (which should be sorted by target mean if monotonic)
         proportions = result.segment_proportions
-        pd_values = result.pd_by_segment
+        target_mean_values = result.target_mean_by_segment
 
-        # Sort by PD for Gini calculation
-        sorted_indices = np.argsort(pd_values)
+        # Sort by target mean for Gini calculation
+        sorted_indices = np.argsort(target_mean_values)
         sorted_proportions = proportions[sorted_indices]
 
         # Cumulative proportion of population
         cumsum_proportions = np.cumsum(sorted_proportions)
 
         # Gini coefficient (Lorenz curve based)
-        # This is a simplified Gini for default concentration
+        # This is a simplified Gini for target concentration
         gini = 1.0 - 2.0 * np.sum(sorted_proportions * (1.0 - cumsum_proportions))
         gini = np.clip(gini, 0.0, 1.0)
 
@@ -321,7 +321,7 @@ def example_fitness_custom_business_metric(
     """Example: Custom business-specific fitness function.
 
     Demonstrates how to implement domain-specific metrics.
-    This example (PD-focused) optimizes for:
+    This example optimizes for:
     - High R² (predictive power)
     - Monotonic increasing target mean (risk ordering)
     - At least 3 segments with >5% population (market presence)
@@ -334,7 +334,7 @@ def example_fitness_custom_business_metric(
     scores : NDArray
         Continuous scores
     labels : NDArray
-        Target variable (binary in this PD-focused example)
+        Target variable
     business_constraint : dict, optional
         Custom constraints dict with keys like:
         - 'min_r2': minimum acceptable R² (default: 0.3)

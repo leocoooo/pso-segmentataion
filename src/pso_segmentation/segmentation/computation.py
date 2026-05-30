@@ -25,7 +25,7 @@ def compute_metrics(
     This function evaluates a segmentation defined by cut boundaries. It computes
     R² (variance explained), within and between-group variances, segment sizes,
     and proportions. The segment-level target mean is returned as
-    ``pd_by_segment`` for backward compatibility.
+    ``target_mean_by_segment``.
 
     Parameters
     ----------
@@ -92,27 +92,29 @@ def compute_metrics(
     # Segment proportions
     segment_proportions_arr: NDArray = segment_sizes_arr / (total_n + EPSILON)
 
-    # Target mean per segment (kept as pd_by_segment for compatibility)
+    # Target mean per segment
     sum_labels: NDArray = np.bincount(inverse_indices, weights=labels_arr).astype(np.float64)
-    pd_by_segment_arr: NDArray = sum_labels / (segment_sizes_arr + EPSILON)
+    target_mean_by_segment_arr: NDArray = sum_labels / (segment_sizes_arr + EPSILON)
 
     # Global mean of target
     global_mean = np.mean(labels_arr)
 
     # Compute R² and variances
-    # H_inter: between-group variance (sum of n_i * (pd_i - global_pd)²)
-    h_inter: float = float(np.sum(segment_sizes_arr * (pd_by_segment_arr - global_mean) ** 2))
+    # H_inter: between-group variance (sum of n_i * (target_mean_i - global_mean)²)
+    h_inter: float = float(
+        np.sum(segment_sizes_arr * (target_mean_by_segment_arr - global_mean) ** 2)
+    )
 
     # H_intra: within-group variance
-    # Expand pd values to match original observations
-    pd_expanded: NDArray = pd_by_segment_arr[inverse_indices]
-    h_intra: float = float(np.sum((labels_arr - pd_expanded) ** 2))
+    # Expand segment target means to match original observations
+    target_mean_expanded: NDArray = target_mean_by_segment_arr[inverse_indices]
+    h_intra: float = float(np.sum((labels_arr - target_mean_expanded) ** 2))
 
     # R²: ratio of explained variance
     total_variance = h_inter + h_intra
     r2: float = float(h_inter / (total_variance + EPSILON))
 
-    sorted_indices = np.argsort(pd_by_segment_arr)
+    sorted_indices = np.argsort(target_mean_by_segment_arr)
     sorted_proportions = segment_proportions_arr[sorted_indices]
     cumsum_proportions = np.cumsum(sorted_proportions)
     gini: float = float(
@@ -139,7 +141,7 @@ def compute_metrics(
     return SegmentationResult(
         r2=r2,
         n_segments=n_segments,
-        pd_by_segment=pd_by_segment_arr,
+        target_mean_by_segment=target_mean_by_segment_arr,
         segment_sizes=segment_sizes_arr,
         segment_proportions=segment_proportions_arr,
         h_inter=h_inter,

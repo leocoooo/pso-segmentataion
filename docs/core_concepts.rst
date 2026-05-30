@@ -156,7 +156,7 @@ Data Structures
    class SegmentationResult:
        r2: float                          # Coefficient of determination
        n_segments: int                    # Number of segments
-    pd_by_segment: NDArray             # Segment mean of the target (PD for binary targets)
+       target_mean_by_segment: NDArray    # Segment mean of the target
        segment_sizes: NDArray             # Count per segment
        segment_proportions: NDArray       # Proportion per segment
        h_inter: float                     # Between-group homogeneity

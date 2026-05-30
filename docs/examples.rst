@@ -38,9 +38,9 @@ Basic Segmentation
 Segmentation with Constraints
 ==============================
 
-**Monotonic Default Rate**
+**Monotonic Target Mean**
 
-Enforce that target mean (PD for binary targets) increases monotonically across segments:
+Enforce that target mean increases monotonically across segments:
 
 .. code-block:: python
 

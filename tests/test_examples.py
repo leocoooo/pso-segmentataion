@@ -24,7 +24,7 @@ def simple_data() -> tuple[np.ndarray, np.ndarray]:
 
 @pytest.fixture
 def perfect_cuts() -> np.ndarray:
-    """Create cuts that separate high/low PD well."""
+    """Create cuts that separate high/low target values well."""
     return np.array([33.0, 67.0])
 
 

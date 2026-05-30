@@ -59,7 +59,7 @@ def segment_scores(
         - r2: Variance explained by segmentation
         - n_segments: Number of segments created
         - segment_proportions: Share of population per segment
-        - pd_by_segment: Segment mean of the target (PD if target is binary)
+        - target_mean_by_segment: Segment mean of the target
         - segment_sizes: Count of observations per segment
         - h_inter, h_intra: Between/within-group heterogeneity
 

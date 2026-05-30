@@ -29,10 +29,8 @@ class SegmentationResult:
         R² of segmentation (between-group variance / total variance)
     n_segments : int
         Number of segments created
-    pd_by_segment : NDArray
+    target_mean_by_segment : NDArray
         Mean target value per segment (shape: (n_segments,)).
-        This is named "pd_by_segment" for backward compatibility; for generic
-        use cases, treat it as the segment-level target mean.
     segment_sizes : NDArray
         Number of observations per segment (shape: (n_segments,))
     segment_proportions : NDArray
@@ -42,7 +40,7 @@ class SegmentationResult:
     h_intra : float
         Intra-segment homogeneity (within-group variance)
     gini : float, default=0.0
-        Gini-style concentration score computed from segment default rates
+        Gini-style concentration score computed from segment target means
     ks : float, default=0.0
         Kolmogorov-Smirnov statistic between cumulative bad and good rates
 
@@ -51,7 +49,7 @@ class SegmentationResult:
     >>> result = SegmentationResult(
     ...     r2=0.85,
     ...     n_segments=5,
-    ...     pd_by_segment=np.array([0.1, 0.2, 0.3, 0.4, 0.5]),
+    ...     target_mean_by_segment=np.array([0.1, 0.2, 0.3, 0.4, 0.5]),
     ...     segment_sizes=np.array([200, 300, 250, 150, 100]),
     ...     segment_proportions=np.array([0.2, 0.3, 0.25, 0.15, 0.1]),
     ...     h_inter=0.15,
@@ -61,22 +59,13 @@ class SegmentationResult:
 
     r2: float
     n_segments: int
-    pd_by_segment: NDArray
+    target_mean_by_segment: NDArray
     segment_sizes: NDArray
     segment_proportions: NDArray
     h_inter: float
     h_intra: float
     gini: float = 0.0
     ks: float = 0.0
-
-    @property
-    def target_mean_by_segment(self) -> NDArray:
-        """Alias for the segment-level target mean values.
-
-        This mirrors ``pd_by_segment`` for generic use cases where the target
-        is not a default indicator.
-        """
-        return self.pd_by_segment
 
     def is_monotonic_increasing(self) -> bool:
         """Check if the segment target means are non-decreasing.
@@ -87,11 +76,11 @@ class SegmentationResult:
         Returns
         -------
         bool
-            True if PD values are strictly increasing
+            True if target mean values are non-decreasing
         """
         if self.n_segments <= 1:
             return True
-        diffs = np.diff(self.pd_by_segment)
+        diffs = np.diff(self.target_mean_by_segment)
         return bool(np.all(diffs > -EPSILON))  # Allow small floating-point errors
 
     def is_monotonic_decreasing(self) -> bool:
@@ -103,11 +92,11 @@ class SegmentationResult:
         Returns
         -------
         bool
-            True if PD values are strictly decreasing
+            True if target mean values are non-increasing
         """
         if self.n_segments <= 1:
             return True
-        diffs = np.diff(self.pd_by_segment)
+        diffs = np.diff(self.target_mean_by_segment)
         return bool(np.all(diffs < EPSILON))  # Allow small floating-point errors
 
     def max_segment_proportion(self) -> float:

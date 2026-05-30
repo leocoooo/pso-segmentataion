@@ -65,7 +65,7 @@ class TestSegmentScoresBasic:
         assert hasattr(result, "r2")
         assert hasattr(result, "n_segments")
         assert hasattr(result, "segment_proportions")
-        assert hasattr(result, "pd_by_segment")
+        assert hasattr(result, "target_mean_by_segment")
         assert hasattr(result, "segment_sizes")
         assert hasattr(result, "h_inter")
         assert hasattr(result, "h_intra")
