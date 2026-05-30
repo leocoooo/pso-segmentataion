@@ -95,7 +95,7 @@ print(selection.best_candidate.cuts)
 The full user guide lives in the `docs/` folder. The notebooks are intentionally limited to:
 
 - `notebooks/00_quick_start.ipynb` (generic segmentation + objective contract)
-- `notebooks/04_business_use_case.ipynb` (PD segmentation with a custom objective)
+- `notebooks/01_business_use_case.ipynb` (PD segmentation with a custom objective)
 
 ## Development
 

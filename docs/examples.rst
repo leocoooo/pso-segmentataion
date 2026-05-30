@@ -5,7 +5,7 @@ Examples
 This page contains practical examples demonstrating common use cases for pso-segmentation.
 
 For a full end-to-end PD segmentation walkthrough (including objective function design),
-see ``notebooks/04_business_use_case.ipynb``.
+see ``notebooks/01_business_use_case.ipynb``.
 
 ---
 
