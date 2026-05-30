@@ -5,6 +5,58 @@ Advanced Usage
 Custom Fitness Functions
 ========================
 
+The recommended entry point is ``make_objective``. It builds the
+``objective(cuts) -> float`` callable expected by the optimizer.
+
+.. code-block:: python
+
+   from pso_segmentation import make_objective, monotonic_penalty, segment_size_penalty
+
+   objective = make_objective(
+       scores,
+       labels,
+       metric="r2",
+       penalties=[
+           monotonic_penalty(weight=0.3),
+           segment_size_penalty(min_size=0.05, max_size=0.4, weight=0.2),
+       ],
+   )
+
+Weights are ordinary arguments, so they can be tuned manually or passed from a
+``param_grid`` in ``select_n_segments``.
+
+.. code-block:: python
+
+   def objective_factory(scores, labels, n_segments, params):
+       return make_objective(
+           scores,
+           labels,
+           metric="r2",
+           penalties=[
+               monotonic_penalty(weight=params["monotonic_weight"]),
+               segment_size_penalty(
+                   min_size=params["min_size"],
+                   max_size=params["max_size"],
+                   weight=params["size_weight"],
+               ),
+           ],
+       )
+
+Custom penalties are regular callables receiving an ``ObjectiveContext``:
+
+.. code-block:: python
+
+   def min_event_count_penalty(context):
+       event_counts = context.result.target_mean_by_segment * context.result.segment_sizes
+       return 0.5 if event_counts.min() < 20 else 0.0
+
+   objective = make_objective(
+       scores,
+       labels,
+       metric="r2",
+       penalties=[min_event_count_penalty],
+   )
+
 **Design Principles**
 
 A fitness function should:
@@ -17,11 +69,7 @@ A fitness function should:
 
 .. code-block:: python
 
-   def my_fitness_function(
-       cuts: NDArray,
-       scores: NDArray,
-       labels: NDArray,
-   ) -> float:
+   def my_fitness_function(cuts: NDArray) -> float:
        """
        Custom fitness function for PSO segmentation.
 
@@ -29,11 +77,6 @@ A fitness function should:
        ----------
        cuts : NDArray
            Array of n_segments-1 cut values defining segment boundaries
-    scores : NDArray
-        Array of continuous values to segment
-    labels : NDArray
-        Array of target values aligned with scores
-
        Returns
        -------
        float
@@ -48,7 +91,7 @@ A fitness function should:
            return 0.0
 
        # Compute metrics
-       result = compute_metrics(cuts, scores, labels)
+       result = compute_metrics(scores, labels, cuts)
 
        # Base fitness
        fitness = result.r2
@@ -141,7 +184,7 @@ Combine multiple objectives with weighted aggregation:
        if not validate_cuts(cuts, scores):
            return 0.0
 
-       result = compute_metrics(cuts, scores, labels)
+       result = compute_metrics(scores, labels, cuts)
 
        # Normalize components to [0, 1]
        r2_component = result.r2  # Already in [0, 1]

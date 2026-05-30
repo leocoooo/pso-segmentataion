@@ -34,16 +34,13 @@ pip install -e ".[dev,docs]"
 
 ```python
 import numpy as np
-from pso_segmentation import example_fitness_r2_only, segment_scores
+from pso_segmentation import make_objective, segment_scores
 
 scores = np.random.uniform(0, 100, 1000)
 labels = np.random.binomial(1, 0.15, 1000)  # target (binary here)
+objective = make_objective(scores, labels, metric="r2")
 
-result = segment_scores(
-    scores,
-    labels,
-    lambda cuts: example_fitness_r2_only(cuts, scores, labels),
-)
+result = segment_scores(scores, labels, objective)
 
 print(f"R2: {result.r2:.3f}")
 print(f"Segments: {result.n_segments}")
@@ -54,21 +51,28 @@ print(f"Segments: {result.n_segments}")
 ```python
 import numpy as np
 from pso_segmentation import (
+    make_objective,
+    monotonic_penalty,
     OptimizerConfig,
     SegmentationOptimizer,
-    example_fitness_r2_with_all_constraints,
+    segment_size_penalty,
 )
 
 scores = np.random.uniform(0, 100, 1000)
 labels = np.random.binomial(1, 0.15, 1000)  # target (binary here)
+objective = make_objective(
+    scores,
+    labels,
+    metric="r2",
+    penalties=[
+        monotonic_penalty(weight=0.3),
+        segment_size_penalty(min_size=0.05, max_size=0.4, weight=0.2),
+    ],
+)
 
 config = OptimizerConfig(n_segments=5, pop_size=50, max_iter=100, seed=42)
 optimizer = SegmentationOptimizer(config)
-optimizer.fit(
-    scores,
-    labels,
-    lambda cuts: example_fitness_r2_with_all_constraints(cuts, scores, labels),
-)
+optimizer.fit(scores, labels, objective)
 
 print(optimizer.summary())
 print(optimizer.get_metrics())
@@ -77,13 +81,23 @@ print(optimizer.get_metrics())
 ### Selecting the number of segments
 
 ```python
-from pso_segmentation import select_n_segments
+from pso_segmentation import make_objective, monotonic_penalty, select_n_segments
+
+
+def objective_factory(scores, labels, n_segments, params):
+    return make_objective(
+        scores,
+        labels,
+        metric="r2",
+        penalties=[monotonic_penalty(weight=params["monotonic_weight"])],
+    )
 
 selection = select_n_segments(
     scores,
     labels,
     segment_range=(3, 7),
-    selection_metric="r2",
+    objective_factory=objective_factory,
+    param_grid={"monotonic_weight": [0.0, 0.2, 0.5]},
 )
 
 print(selection.best_candidate.n_segments)

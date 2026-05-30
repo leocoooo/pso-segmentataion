@@ -56,6 +56,7 @@ Features
 
 - **PSO Core** - Configurable particle swarm optimizer with history tracking
 - **Segmentation Logic** - Flexible segmentation with R², homogeneity, and balance metrics
+- **Objective Builders** - Standard objective construction with composable penalties
 - **Example Fitness Functions** - 6 pedagogical fitness function implementations
 - **IO Module** - CSV export/import, pickle serialization, JSON metrics
 - **Optimizer Class** - High-level object-oriented interface
@@ -87,7 +88,7 @@ Quick Example
 
 .. code-block:: python
 
-   from pso_segmentation import segment_scores, example_fitness_r2_only
+   from pso_segmentation import make_objective, segment_scores
    import numpy as np
 
    # Your data
@@ -95,10 +96,8 @@ Quick Example
    labels = (scores > 0.5).astype(float)
 
    # Simple functional API
-   result = segment_scores(
-       scores, labels,
-       lambda cuts: example_fitness_r2_only(cuts, scores, labels)
-   )
+   objective = make_objective(scores, labels, metric="r2")
+   result = segment_scores(scores, labels, objective)
 
    # Access results
    print(f"R²: {result.r2:.3f}")

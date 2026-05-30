@@ -83,7 +83,7 @@ A fitness function quantifies how good a segmentation is. The PSO optimizer maxi
 
    def fitness_r2_only(cuts, scores, labels):
        """Maximize R² without constraints."""
-       result = compute_metrics(cuts, scores, labels)
+       result = compute_metrics(scores, labels, cuts)
        return result.r2
 
 ---

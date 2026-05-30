@@ -16,7 +16,7 @@ Basic Segmentation
 
 .. code-block:: python
 
-   from pso_segmentation import segment_scores, example_fitness_r2_only
+   from pso_segmentation import make_objective, segment_scores
    import numpy as np
 
    # Generate sample data
@@ -26,10 +26,8 @@ Basic Segmentation
    labels = np.clip(labels, 0, 1) > 0.5
 
    # Run segmentation with R² only
-   result = segment_scores(
-       scores, labels,
-       lambda cuts: example_fitness_r2_only(cuts, scores, labels)
-   )
+   objective = make_objective(scores, labels, metric="r2")
+   result = segment_scores(scores, labels, objective)
 
    print(f"R² Score: {result.r2:.4f}")
    print(f"Number of segments: {result.n_segments}")
@@ -46,13 +44,16 @@ Enforce that target mean (PD for binary targets) increases monotonically across 
 
 .. code-block:: python
 
-   from pso_segmentation import segment_scores, example_fitness_r2_with_monotonic_penalty
+   from pso_segmentation import make_objective, monotonic_penalty, segment_scores
    import numpy as np
 
-   result = segment_scores(
-       scores, labels,
-       lambda cuts: example_fitness_r2_with_monotonic_penalty(cuts, scores, labels)
+   objective = make_objective(
+       scores,
+       labels,
+       metric="r2",
+       penalties=[monotonic_penalty(weight=0.3)],
    )
+   result = segment_scores(scores, labels, objective)
 
    # Target mean should now be monotonically increasing
    print(f"Target mean by segment: {result.target_mean_by_segment}")
@@ -63,13 +64,16 @@ Enforce roughly equal segment sizes:
 
 .. code-block:: python
 
-   from pso_segmentation import segment_scores, example_fitness_r2_with_balance_penalty
+   from pso_segmentation import make_objective, segment_size_penalty, segment_scores
    import numpy as np
 
-   result = segment_scores(
-       scores, labels,
-       lambda cuts: example_fitness_r2_with_balance_penalty(cuts, scores, labels)
+   objective = make_objective(
+       scores,
+       labels,
+       metric="r2",
+       penalties=[segment_size_penalty(min_size=0.05, max_size=0.4, weight=0.2)],
    )
+   result = segment_scores(scores, labels, objective)
 
    print(f"Segment sizes: {result.segment_sizes}")
    print(f"Segment proportions: {result.segment_proportions}")
@@ -80,13 +84,19 @@ Use all constraints together:
 
 .. code-block:: python
 
-   from pso_segmentation import segment_scores, example_fitness_r2_with_all_constraints
+   from pso_segmentation import make_objective, monotonic_penalty, segment_size_penalty, segment_scores
    import numpy as np
 
-   result = segment_scores(
-       scores, labels,
-       lambda cuts: example_fitness_r2_with_all_constraints(cuts, scores, labels)
+   objective = make_objective(
+       scores,
+       labels,
+       metric="r2",
+       penalties=[
+           monotonic_penalty(weight=0.3),
+           segment_size_penalty(min_size=0.05, max_size=0.4, weight=0.2),
+       ],
    )
+   result = segment_scores(scores, labels, objective)
 
 ---
 
@@ -98,7 +108,7 @@ For more control, use the ``SegmentationOptimizer`` class:
 .. code-block:: python
 
    from pso_segmentation import SegmentationOptimizer, OptimizerConfig
-   from pso_segmentation import example_fitness_r2_with_all_constraints
+   from pso_segmentation import make_objective, monotonic_penalty, segment_size_penalty
    import numpy as np
 
    # Configure optimizer
@@ -116,12 +126,19 @@ For more control, use the ``SegmentationOptimizer`` class:
    # Create optimizer
    optimizer = SegmentationOptimizer(config)
 
-   # Define fitness function
-   def fitness_func(cuts):
-       return example_fitness_r2_with_all_constraints(cuts, scores, labels)
+   # Build objective function
+   objective = make_objective(
+       scores,
+       labels,
+       metric="r2",
+       penalties=[
+           monotonic_penalty(weight=0.3),
+           segment_size_penalty(min_size=0.05, max_size=0.4, weight=0.2),
+       ],
+   )
 
    # Fit
-   optimizer.fit(scores, labels, fitness_func)
+   optimizer.fit(scores, labels, objective)
 
    # Get results
    result = optimizer.get_metrics()
@@ -184,57 +201,19 @@ Exporting Results
 Custom Fitness Functions
 =========================
 
-Create your own fitness function combining multiple objectives:
+Create your own penalty and plug it into ``make_objective``:
 
 .. code-block:: python
 
-   def custom_fitness(cuts, scores, labels):
-       """
-       Custom fitness: Maximize R² while enforcing constraints.
+   from pso_segmentation import make_objective
 
-       Parameters
-       ----------
-       cuts : NDArray
-           Segment boundaries
-       scores : NDArray
-           Credit scores
-       labels : NDArray
-           Default indicators
-
-       Returns
-       -------
-       float
-           Fitness value (higher is better)
-       """
-       from pso_segmentation.segmentation.computation import compute_metrics
-       from pso_segmentation.segmentation.validation import validate_cuts
-
-       # Validate cuts
-       if not validate_cuts(cuts, scores):
-           return 0.0
-
-       # Compute metrics
-       result = compute_metrics(cuts, scores, labels)
-
-       # Base fitness: R²
-       fitness = result.r2
-
-       # Penalty for violated constraints
-       # Monotonicity penalty
-       pd = result.pd_by_segment
-       if not all(pd[i] <= pd[i+1] for i in range(len(pd)-1)):
-           fitness -= 0.2
-
-       # Size balance penalty
-       proportions = result.segment_proportions
-       expected_proportion = 1.0 / len(proportions)
-       size_penalty = sum(abs(p - expected_proportion) for p in proportions)
-       fitness -= 0.1 * size_penalty
-
-       return fitness
+   def min_event_count_penalty(context):
+       event_counts = context.result.target_mean_by_segment * context.result.segment_sizes
+       return 0.5 if event_counts.min() < 20 else 0.0
 
    # Use custom fitness
-   result = segment_scores(scores, labels, custom_fitness)
+   objective = make_objective(scores, labels, metric="r2", penalties=[min_event_count_penalty])
+   result = segment_scores(scores, labels, objective)
 
 ---
 

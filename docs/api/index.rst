@@ -8,6 +8,7 @@ API Reference
    pso_core
    segmentation
    optimizer
+   objective
    api_functional
    io
 
@@ -30,6 +31,8 @@ The pso-segmentation package is organized into several modules:
      - Segmentation logic and metrics
    * - ``pso_segmentation.optimizer``
      - High-level OO interface
+   * - ``pso_segmentation.objective``
+     - Objective builders and composable penalty functions
    * - ``pso_segmentation.api``
      - Functional API wrapper
    * - ``pso_segmentation.io``
@@ -68,7 +71,7 @@ Utilities for computing segmentation metrics:
    from pso_segmentation.segmentation.computation import compute_metrics
    from pso_segmentation.segmentation.metrics import SegmentationResult
 
-   result = compute_metrics(cuts, scores, labels)
+   result = compute_metrics(scores, labels, cuts)
 
 **Optimizer** (:doc:`optimizer`)
 
@@ -81,6 +84,21 @@ High-level OO interface:
    config = OptimizerConfig(n_segments=5)
    optimizer = SegmentationOptimizer(config)
    optimizer.fit(scores, labels, fitness)
+
+**Objective Builders** (:doc:`objective`)
+
+Composable objective functions:
+
+.. code-block:: python
+
+   from pso_segmentation import make_objective, monotonic_penalty
+
+   objective = make_objective(
+       scores,
+       labels,
+       metric="r2",
+       penalties=[monotonic_penalty(weight=0.3)],
+   )
 
 **Functional API** (:doc:`api_functional`)
 

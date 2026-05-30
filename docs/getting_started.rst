@@ -30,19 +30,18 @@ The simplest way to use pso-segmentation is with the functional API:
 
 .. code-block:: python
 
-   from pso_segmentation import segment_scores, example_fitness_r2_only
+   from pso_segmentation import make_objective, segment_scores
    import numpy as np
 
    # Prepare your data
    scores = np.random.rand(1000)
    labels = np.random.binomial(1, scores)
 
-   # Define fitness function
-   def fitness(cuts):
-       return example_fitness_r2_only(cuts, scores, labels)
+   # Build the objective function
+   objective = make_objective(scores, labels, metric="r2")
 
    # Run segmentation
-   result = segment_scores(scores, labels, fitness)
+   result = segment_scores(scores, labels, objective)
 
    # Access results
    print(f"Best R²: {result.r2:.4f}")
@@ -59,7 +58,7 @@ For more control, use the ``SegmentationOptimizer`` class:
 .. code-block:: python
 
    from pso_segmentation import SegmentationOptimizer, OptimizerConfig
-   from pso_segmentation import example_fitness_r2_only
+   from pso_segmentation import make_objective, monotonic_penalty, segment_size_penalty
    import numpy as np
 
    # Prepare data
@@ -79,12 +78,19 @@ For more control, use the ``SegmentationOptimizer`` class:
    # Create optimizer
    optimizer = SegmentationOptimizer(config)
 
-   # Define fitness function
-   def fitness(cuts):
-       return example_fitness_r2_only(cuts, scores, labels)
+   # Build an objective with user-chosen penalty weights
+   objective = make_objective(
+       scores,
+       labels,
+       metric="r2",
+       penalties=[
+           monotonic_penalty(weight=0.3),
+           segment_size_penalty(min_size=0.05, max_size=0.4, weight=0.2),
+       ],
+   )
 
    # Fit
-   optimizer.fit(scores, labels, fitness)
+   optimizer.fit(scores, labels, objective)
 
    # Get results
    print(optimizer.summary())
@@ -159,8 +165,37 @@ Configuration Options
 
 ---
 
-Example Fitness Functions
-==========================
+Objective Functions
+===================
+
+The recommended way to create an objective is ``make_objective``:
+
+.. code-block:: python
+
+   from pso_segmentation import make_objective, monotonic_penalty, segment_size_penalty
+
+   objective = make_objective(
+       scores,
+       labels,
+       metric="r2",
+       penalties=[
+           monotonic_penalty(weight=0.3),
+           segment_size_penalty(min_size=0.05, max_size=0.4, weight=0.2),
+       ],
+   )
+
+Custom penalties are regular callables receiving an ``ObjectiveContext``:
+
+.. code-block:: python
+
+   def min_events_penalty(context):
+       event_counts = context.result.target_mean_by_segment * context.result.segment_sizes
+       return 0.5 if event_counts.min() < 20 else 0.0
+
+   objective = make_objective(scores, labels, penalties=[min_events_penalty])
+
+Legacy Example Fitness Functions
+================================
 
 The package includes 6 example fitness functions:
 

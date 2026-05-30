@@ -42,7 +42,8 @@ def segment_scores(
         Fitness function to maximize during optimization
         Input: Cut values (1D array)
         Output: Scalar fitness score (higher is better)
-        Examples: example_fitness_r2_only, example_fitness_custom_business_metric
+        Use ``make_objective`` or any callable with signature
+        ``objective(cuts) -> float``.
     config : OptimizerConfig | None, optional
         PSO configuration. If None, uses sensible defaults:
         - pop_size=30
@@ -71,22 +72,23 @@ def segment_scores(
 
     Examples
     --------
-    >>> from pso_segmentation import segment_scores, example_fitness_r2_only
+    >>> from pso_segmentation import make_objective, segment_scores
     >>> import numpy as np
     >>> scores = np.random.rand(1000)
     >>> labels = np.random.binomial(1, 0.3, 1000)
-    >>> result = segment_scores(scores, labels, example_fitness_r2_only)
+    >>> objective = make_objective(scores, labels, metric="r2")
+    >>> result = segment_scores(scores, labels, objective)
     >>> print(f"R²: {result.r2:.3f}, Segments: {result.n_segments}")
 
     >>> # With custom config
     >>> from pso_segmentation import OptimizerConfig
     >>> config = OptimizerConfig(pop_size=100, max_iter=200)
-    >>> result = segment_scores(scores, labels, example_fitness_r2_only, config)
+    >>> result = segment_scores(scores, labels, objective, config)
 
     Notes
     -----
-    - Use example_fitness_* functions from pso_segmentation.objective_functions_examples
-    - For business constraints, use example_fitness_custom_business_metric as a template
+    - Use make_objective for standard objective construction
+    - Custom constraints can be expressed as objective penalties
     - PSO is stochastic; results vary slightly across runs
     - Larger pop_size and max_iter → better results but slower convergence
     """
