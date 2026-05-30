@@ -61,14 +61,26 @@ def export_segmentation_to_csv(
 
     Examples
     --------
-    >>> from pso_segmentation import segment_scores, example_fitness_r2_only
+    >>> from pso_segmentation import (
+    ...     OptimizerConfig,
+    ...     SegmentationOptimizer,
+    ...     example_fitness_r2_only,
+    ... )
     >>> import numpy as np
     >>> scores = np.random.rand(1000)
     >>> labels = np.random.binomial(1, 0.3, 1000)
-    >>> result = segment_scores(scores, labels,
-    ...     lambda cuts: example_fitness_r2_only(cuts, scores, labels))
-    >>> cuts = result.get_cuts() if hasattr(result, 'get_cuts') else result.cuts
-    >>> files = export_segmentation_to_csv(cuts, scores, labels)
+    >>> optimizer = SegmentationOptimizer(OptimizerConfig(seed=42))
+    >>> optimizer.fit(
+    ...     scores,
+    ...     labels,
+    ...     lambda cuts: example_fitness_r2_only(cuts, scores, labels),
+    ... )
+    >>> files = export_segmentation_to_csv(
+    ...     optimizer.get_cuts(),
+    ...     scores,
+    ...     labels,
+    ...     optimizer.get_segments(),
+    ... )
     >>> print(files)
     {'cuts': './cuts.csv', 'data': './segmented_data.csv', ...}
     """
