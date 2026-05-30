@@ -49,7 +49,7 @@ class OptimizerConfig:
     max_segment_size : float, default=0.30
         Maximum segment proportion
     enforce_monotonic : bool, default=True
-        Enforce monotonic increasing PD constraint
+        Enforce monotonic increasing target-mean constraint
     track_history : bool, default=True
         Track optimization history
     seed : int | None, default=None
@@ -115,7 +115,7 @@ class SegmentationOptimizer:
         scores : NDArray or list[float]
             Continuous scores to segment (shape: (n_samples,))
         labels : NDArray or list[float]
-            Binary/continuous target variable (shape: (n_samples,))
+            Target variable (binary or continuous) (shape: (n_samples,))
         objective_func : callable
             Fitness function with signature: func(cuts: NDArray) -> float
             Should return a value to MAXIMIZE (higher is better).
@@ -215,7 +215,7 @@ class SegmentationOptimizer:
         Returns
         -------
         SegmentationResult
-            Comprehensive segmentation metrics including R², PD, sizes, etc.
+            Comprehensive segmentation metrics including R², target means, sizes, etc.
 
         Raises
         ------
@@ -251,7 +251,7 @@ class SegmentationOptimizer:
         Returns
         -------
         str
-            Formatted summary including R², segments, PD by segment, etc.
+            Formatted summary including R², segments, and target means by segment.
 
         Raises
         ------
@@ -270,6 +270,7 @@ class SegmentationOptimizer:
             "=" * 60,
             "SEGMENTATION OPTIMIZER RESULTS",
             "=" * 60,
+            "Target mean = segment average of labels (PD for binary targets)",
             f"R² (Variance Explained): {metrics.r2:.4f}",
             f"Number of Segments: {metrics.n_segments}",
             "",
@@ -288,9 +289,9 @@ class SegmentationOptimizer:
 
         for i in range(metrics.n_segments):
             segment_pct = metrics.segment_proportions[i] * 100
-            pd_pct = metrics.pd_by_segment[i] * 100
+            target_pct = metrics.pd_by_segment[i] * 100
             lines.append(
-                f"  Segment {i}: PD={pd_pct:.2f}%, "
+                f"  Segment {i}: Target mean={target_pct:.2f}%, "
                 f"Size={segment_pct:.2f}% (n={int(metrics.segment_sizes[i])})"
             )
 
@@ -346,6 +347,9 @@ class SegmentationOptimizer:
             "r2": float(self._result.r2) if self._result else None,
             "n_segments": self._result.n_segments if self._result else None,
             "pd_by_segment": (self._result.pd_by_segment.tolist() if self._result else None),
+            "target_mean_by_segment": (
+                self._result.pd_by_segment.tolist() if self._result else None
+            ),
             "segment_sizes": (self._result.segment_sizes.tolist() if self._result else None),
             "segment_proportions": (
                 self._result.segment_proportions.tolist() if self._result else None

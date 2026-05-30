@@ -2,7 +2,7 @@
 PSO Segmentation - Documentation
 =====================================
 
-**pso-segmentation** is a robust, professional-grade Python package for customer segmentation using Particle Swarm Optimization (PSO). It combines a custom PSO engine with flexible APIs for easy integration into credit scoring and business analytics workflows.
+**pso-segmentation** is a robust, professional-grade Python package for continuous-variable segmentation using Particle Swarm Optimization (PSO). It combines a custom PSO engine with flexible APIs for easy integration into analytics workflows (credit scoring is a common example, not a requirement).
 
 .. image:: https://img.shields.io/badge/python-3.12+-blue
    :alt: Python 3.12+
@@ -103,7 +103,7 @@ Quick Example
    # Access results
    print(f"R²: {result.r2:.3f}")
    print(f"Segments: {result.n_segments}")
-   print(f"PD by segment: {result.pd_by_segment}")
+   print(f"Target mean by segment: {result.target_mean_by_segment}")
 
 For more detailed examples, see :doc:`examples`.
 

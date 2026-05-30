@@ -33,11 +33,11 @@ def segment_scores(
     Parameters
     ----------
     scores : NDArray
-        Array of scores/predictions to segment (shape: (n_samples,))
-        Example: Credit risk scores, probability of default, or model predictions
+        Array of continuous values to segment (shape: (n_samples,))
+        Example: risk scores, probabilities, or any continuous signal
     labels : NDArray
-        Binary labels (0/1) aligned with scores (shape: (n_samples,))
-        Used to compute metrics (R², segment default rates, etc.)
+        Target variable aligned with scores (shape: (n_samples,))
+        Used to compute metrics (R², segment means, etc.)
     objective_func : Callable[[NDArray], float]
         Fitness function to maximize during optimization
         Input: Cut values (1D array)
@@ -45,10 +45,10 @@ def segment_scores(
         Examples: example_fitness_r2_only, example_fitness_custom_business_metric
     config : OptimizerConfig | None, optional
         PSO configuration. If None, uses sensible defaults:
-        - pop_size=50
+        - pop_size=30
         - max_iter=100
         - w, c1, c2: standard PSO parameters
-        - monotonic=False (relaxed constraint)
+        - enforce_monotonic=True (used during validation)
         Default: None
 
     Returns
@@ -59,7 +59,7 @@ def segment_scores(
         - r2: Variance explained by segmentation
         - n_segments: Number of segments created
         - segment_proportions: Share of population per segment
-        - pd_by_segment: Default rate per segment
+        - pd_by_segment: Segment mean of the target (PD if target is binary)
         - segment_sizes: Count of observations per segment
         - h_inter, h_intra: Between/within-group heterogeneity
 
@@ -86,8 +86,8 @@ def segment_scores(
 
     Notes
     -----
-    - Use example_fitness_* functions from pso_segmentation.examples
-    - For business constraints, use example_fitness_custom_business_metric
+    - Use example_fitness_* functions from pso_segmentation.objective_functions_examples
+    - For business constraints, use example_fitness_custom_business_metric as a template
     - PSO is stochastic; results vary slightly across runs
     - Larger pop_size and max_iter → better results but slower convergence
     """

@@ -30,7 +30,9 @@ class SegmentationResult:
     n_segments : int
         Number of segments created
     pd_by_segment : NDArray
-        Probability of default (or target variable) per segment (shape: (n_segments,))
+        Mean target value per segment (shape: (n_segments,)).
+        This is named "pd_by_segment" for backward compatibility; for generic
+        use cases, treat it as the segment-level target mean.
     segment_sizes : NDArray
         Number of observations per segment (shape: (n_segments,))
     segment_proportions : NDArray
@@ -67,10 +69,20 @@ class SegmentationResult:
     gini: float = 0.0
     ks: float = 0.0
 
-    def is_monotonic_increasing(self) -> bool:
-        """Check if target variable (PD) is strictly increasing across segments.
+    @property
+    def target_mean_by_segment(self) -> NDArray:
+        """Alias for the segment-level target mean values.
 
-        This assumes scores are sorted ascending, so PD should also increase.
+        This mirrors ``pd_by_segment`` for generic use cases where the target
+        is not a default indicator.
+        """
+        return self.pd_by_segment
+
+    def is_monotonic_increasing(self) -> bool:
+        """Check if the segment target means are non-decreasing.
+
+        This assumes scores are sorted ascending, so the target mean should
+        also increase or stay flat.
 
         Returns
         -------
@@ -83,9 +95,10 @@ class SegmentationResult:
         return bool(np.all(diffs > -EPSILON))  # Allow small floating-point errors
 
     def is_monotonic_decreasing(self) -> bool:
-        """Check if target variable (PD) is strictly decreasing across segments.
+        """Check if the segment target means are non-increasing.
 
-        This assumes higher scores should have lower PD (risk), so PD decreases.
+        This assumes higher scores should have lower target means, so values
+        decrease or stay flat.
 
         Returns
         -------

@@ -140,7 +140,7 @@ def select_n_segments(
     scores : NDArray or list[float]
         Continuous scores to segment.
     labels : NDArray or list[float]
-        Target labels aligned with scores.
+        Target values aligned with scores.
     segment_range : iterable[int] or tuple[int, int]
         Candidate segment counts. A tuple ``(3, 7)`` is interpreted as the
         inclusive range ``3, 4, 5, 6, 7``.

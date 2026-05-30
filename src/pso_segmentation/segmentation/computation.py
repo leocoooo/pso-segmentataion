@@ -1,7 +1,7 @@
 """Core computation functions for segmentation metrics.
 
 This module provides functions to compute segmentation metrics from scores,
-labels, and segment boundaries.
+targets, and segment boundaries.
 """
 
 from __future__ import annotations
@@ -24,14 +24,17 @@ def compute_metrics(
 
     This function evaluates a segmentation defined by cut boundaries. It computes
     R² (variance explained), within and between-group variances, segment sizes,
-    and proportions.
+    and proportions. The segment-level target mean is returned as
+    ``pd_by_segment`` for backward compatibility.
 
     Parameters
     ----------
     scores : NDArray
         Continuous scores to segment (shape: (n_samples,))
     labels : NDArray
-        Binary or continuous target variable (shape: (n_samples,))
+        Target variable aligned with scores (shape: (n_samples,)).
+        Can be binary or continuous; some metrics (Gini/KS) are only
+        meaningful for binary targets.
     cuts : NDArray or list[float]
         Segment boundaries. For k segments, provide k-1 cuts.
         Example: cuts=[30, 50, 70] creates segments (-inf,30], (30,50], (50,70], (70,inf)
@@ -89,7 +92,7 @@ def compute_metrics(
     # Segment proportions
     segment_proportions_arr: NDArray = segment_sizes_arr / (total_n + EPSILON)
 
-    # Target variable (PD) per segment
+    # Target mean per segment (kept as pd_by_segment for compatibility)
     sum_labels: NDArray = np.bincount(inverse_indices, weights=labels_arr).astype(np.float64)
     pd_by_segment_arr: NDArray = sum_labels / (segment_sizes_arr + EPSILON)
 
@@ -120,6 +123,8 @@ def compute_metrics(
         )
     )
 
+    # Gini/KS are most interpretable for binary targets, but we keep the
+    # computation generic to avoid breaking existing workflows.
     bad_counts: NDArray = sum_labels
     good_counts: NDArray = segment_sizes_arr - bad_counts
     total_bad = float(np.sum(bad_counts))

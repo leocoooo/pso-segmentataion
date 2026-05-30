@@ -5,9 +5,9 @@ used with SegmentationOptimizer. Users can copy and adapt these examples
 to implement custom business metrics.
 
 Each example demonstrates different approaches:
-- Simple R² maximization
-- R² with constraint penalties
-- Business-specific metrics (balance, concentration, etc.)
+- Simple R² maximization (generic)
+- R² with constraint penalties (generic templates)
+- Business-specific metrics (e.g., PD-focused constraints)
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ def example_fitness_r2_only(
     scores : NDArray
         Continuous scores (shape: (n_samples,))
     labels : NDArray
-        Binary target variable (shape: (n_samples,))
+        Target variable (shape: (n_samples,))
 
     Returns
     -------
@@ -70,7 +70,7 @@ def example_fitness_r2_with_monotonic_penalty(
 ) -> float:
     """Example: R² with penalty for non-monotonic segmentation.
 
-    Maximize R² while penalizing violations of monotonic increasing PD.
+    Maximize R² while penalizing violations of monotonic increasing target mean.
     Useful for risk segmentation where default rate should increase.
 
     Parameters
@@ -80,7 +80,7 @@ def example_fitness_r2_with_monotonic_penalty(
     scores : NDArray
         Continuous scores
     labels : NDArray
-        Binary target variable
+        Target variable
     penalty_weight : float, default=0.5
         Weight for monotonicity penalty (0-1).
         Higher weight = stricter enforcement.
@@ -134,7 +134,7 @@ def example_fitness_r2_with_balance_penalty(
     scores : NDArray
         Continuous scores
     labels : NDArray
-        Binary target variable
+        Target variable
     min_size : float, default=0.05
         Minimum segment proportion
     max_size : float, default=0.30
@@ -191,7 +191,7 @@ def example_fitness_r2_with_all_constraints(
     scores : NDArray
         Continuous scores
     labels : NDArray
-        Binary target variable
+        Target variable
     min_size : float, default=0.05
         Minimum segment proportion
     max_size : float, default=0.30
@@ -257,7 +257,7 @@ def example_fitness_gini_focused(
     scores : NDArray
         Continuous scores
     labels : NDArray
-        Binary target variable
+        Target variable (Gini is most interpretable for binary targets)
     r2_weight : float, default=0.5
         Weight for R² component
     gini_weight : float, default=0.5
@@ -278,9 +278,9 @@ def example_fitness_gini_focused(
     Notes
     -----
     Gini coefficient is calculated as:
-    Gini = 1 - 2 * sum(segment_proportion_i * (1 - cumsum_pd_i))
+    Gini = 1 - 2 * sum(segment_proportion_i * (1 - cumsum_target_i))
     where segment_proportion is the share of population in each segment
-    and cumsum_pd is the cumulative PD up to that segment.
+    and cumsum_target is the cumulative target mean up to that segment.
     """
     try:
         result = compute_metrics(scores, labels, cuts)
@@ -321,9 +321,9 @@ def example_fitness_custom_business_metric(
     """Example: Custom business-specific fitness function.
 
     Demonstrates how to implement domain-specific metrics.
-    This example optimizes for:
+    This example (PD-focused) optimizes for:
     - High R² (predictive power)
-    - Monotonic increasing PD (risk ordering)
+    - Monotonic increasing target mean (risk ordering)
     - At least 3 segments with >5% population (market presence)
     - No segment with >40% population (concentration risk)
 
@@ -334,7 +334,7 @@ def example_fitness_custom_business_metric(
     scores : NDArray
         Continuous scores
     labels : NDArray
-        Binary target variable
+        Target variable (binary in this PD-focused example)
     business_constraint : dict, optional
         Custom constraints dict with keys like:
         - 'min_r2': minimum acceptable R² (default: 0.3)

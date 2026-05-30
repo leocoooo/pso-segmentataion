@@ -25,14 +25,20 @@ Particle Swarm Optimization is a metaheuristic algorithm inspired by social beha
 Segmentation Problem
 ====================
 
-Customer segmentation divides a population into homogeneous groups based on risk or behavioral attributes.
+Segmentation divides a population into homogeneous groups based on a continuous variable.
 
-**In Credit Scoring Context:**
+**Generic terminology:**
 
-- **Scores**: Predicted probability of default (0-1)
-- **Labels**: Actual defaults (0 or 1)
+- **Scores**: Continuous variable to segment (model score, signal, risk score, etc.)
+- **Labels**: Target values used to evaluate the segmentation (optional but typical)
 - **Cuts**: Boundaries that define segment thresholds
-- **Segments**: The resulting risk groups
+- **Segments**: The resulting groups
+
+**Credit scoring example (optional):**
+
+- Scores are predicted probabilities of default (0-1)
+- Labels are observed defaults (0 or 1)
+- Segment-level target means correspond to PD by segment
 
 **Example:**
 
@@ -88,7 +94,7 @@ Constraints in Segmentation
 Real-world segmentation often requires constraints:
 
 1. **Monotonic Increasing/Decreasing**
-   - PD must increase (or decrease) monotonically across segments
+   - Target mean should increase (or decrease) monotonically across segments
    - Common in risk-based segmentation
 
 2. **Balanced Segments**
@@ -150,7 +156,7 @@ Data Structures
    class SegmentationResult:
        r2: float                          # Coefficient of determination
        n_segments: int                    # Number of segments
-       pd_by_segment: NDArray             # PD (default rate) per segment
+    pd_by_segment: NDArray             # Segment mean of the target (PD for binary targets)
        segment_sizes: NDArray             # Count per segment
        segment_proportions: NDArray       # Proportion per segment
        h_inter: float                     # Between-group homogeneity

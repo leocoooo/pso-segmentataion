@@ -4,6 +4,9 @@ Examples
 
 This page contains practical examples demonstrating common use cases for pso-segmentation.
 
+For a full end-to-end PD segmentation walkthrough (including objective function design),
+see ``notebooks/04_business_use_case.ipynb``.
+
 ---
 
 Basic Segmentation
@@ -30,7 +33,7 @@ Basic Segmentation
 
    print(f"R² Score: {result.r2:.4f}")
    print(f"Number of segments: {result.n_segments}")
-   print(f"PD by segment: {result.pd_by_segment}")
+   print(f"Target mean by segment: {result.target_mean_by_segment}")
 
 ---
 
@@ -39,7 +42,7 @@ Segmentation with Constraints
 
 **Monotonic Default Rate**
 
-Enforce that default rate (PD) increases monotonically across segments:
+Enforce that target mean (PD for binary targets) increases monotonically across segments:
 
 .. code-block:: python
 
@@ -51,8 +54,8 @@ Enforce that default rate (PD) increases monotonically across segments:
        lambda cuts: example_fitness_r2_with_monotonic_penalty(cuts, scores, labels)
    )
 
-   # PD should now be monotonically increasing
-   print(f"PD by segment: {result.pd_by_segment}")
+   # Target mean should now be monotonically increasing
+   print(f"Target mean by segment: {result.target_mean_by_segment}")
 
 **Balanced Segments**
 
@@ -288,7 +291,7 @@ The ``SegmentationResult`` dataclass contains detailed metrics:
    # Access all metrics
    print(f"R² (explained variance): {result.r2:.4f}")
    print(f"Number of segments: {result.n_segments}")
-   print(f"PD by segment: {result.pd_by_segment}")
+   print(f"Target mean by segment: {result.target_mean_by_segment}")
    print(f"Segment sizes: {result.segment_sizes}")
    print(f"Segment proportions: {result.segment_proportions}")
    print(f"H_inter (between-group): {result.h_inter:.4f}")

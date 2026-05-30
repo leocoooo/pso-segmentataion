@@ -29,10 +29,10 @@ A fitness function should:
        ----------
        cuts : NDArray
            Array of n_segments-1 cut values defining segment boundaries
-       scores : NDArray
-           Array of risk scores (typically 0-1)
-       labels : NDArray
-           Array of binary labels (0 or 1)
+    scores : NDArray
+        Array of continuous values to segment
+    labels : NDArray
+        Array of target values aligned with scores
 
        Returns
        -------
@@ -65,16 +65,16 @@ Constraint Implementation Patterns
 
 **Monotonicity Constraint**
 
-Enforce PD increasing across segments:
+Enforce target mean increasing across segments (PD for binary targets):
 
 .. code-block:: python
 
-   def penalty_monotonic(pd_by_segment, weight=0.2):
-       """Penalize violation of monotonic increasing PD."""
+   def penalty_monotonic(target_mean_by_segment, weight=0.2):
+       """Penalize violation of monotonic increasing target mean."""
        penalty = 0.0
-       for i in range(len(pd_by_segment) - 1):
-           if pd_by_segment[i] > pd_by_segment[i+1]:
-               penalty += weight * (pd_by_segment[i] - pd_by_segment[i+1])
+       for i in range(len(target_mean_by_segment) - 1):
+           if target_mean_by_segment[i] > target_mean_by_segment[i+1]:
+               penalty += weight * (target_mean_by_segment[i] - target_mean_by_segment[i+1])
        return penalty
 
 **Size Balance Constraint**
@@ -125,8 +125,8 @@ Combine multiple objectives with weighted aggregation:
            Segment boundaries
        scores : NDArray
            Risk scores
-       labels : NDArray
-           Default labels
+    labels : NDArray
+        Target labels
        weights : dict
            Objective weights: {'r2': 0.5, 'gini': 0.3, 'monotonic': 0.2}
 
@@ -146,9 +146,9 @@ Combine multiple objectives with weighted aggregation:
        # Normalize components to [0, 1]
        r2_component = result.r2  # Already in [0, 1]
        gini_component = result.gini / 0.5  # Normalize
-       pd = result.pd_by_segment
+       target_mean = result.target_mean_by_segment
        monotonic_component = all(
-           pd[i] <= pd[i+1] for i in range(len(pd)-1)
+           target_mean[i] <= target_mean[i+1] for i in range(len(target_mean)-1)
        ) and 1.0 or 0.0
 
        # Weighted sum
@@ -291,8 +291,8 @@ Integration with Existing Workflows
 
    result = segment_scores(
        df['score'].values,
-       df['default'].values,
-       lambda cuts: example_fitness_r2_only(cuts, df['score'].values, df['default'].values)
+       df['target'].values,
+       lambda cuts: example_fitness_r2_only(cuts, df['score'].values, df['target'].values)
    )
 
    df['segment'] = pd.cut(df['score'], bins=np.concatenate([[-np.inf], result.cuts, [np.inf]]))

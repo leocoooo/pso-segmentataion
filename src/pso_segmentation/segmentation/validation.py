@@ -94,7 +94,7 @@ def validate_segmentation(
     max_segment_size : float, default=0.30
         Maximum allowed segment proportion
     monotonic : bool, default=True
-        Whether to require monotonicity (increasing PD with score)
+        Whether to require monotonicity (increasing target mean with score)
 
     Returns
     -------
@@ -126,7 +126,7 @@ def validate_segmentation(
 
     # Check monotonicity if required
     if monotonic and not result.is_monotonic_increasing():
-        return False, "Segmentation is not monotonic increasing (PD should increase)"
+        return False, "Segmentation is not monotonic increasing (target mean should increase)"
 
     return True, "Segmentation is valid"
 

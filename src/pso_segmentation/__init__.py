@@ -1,7 +1,8 @@
 """pso-segmentation package.
 
 A robust, professional-grade Python package for segmentation optimization
-using Particle Swarm Optimization (PSO).
+using Particle Swarm Optimization (PSO). Designed for any continuous
+variable; credit scoring is a common example, not a requirement.
 
 Version: 0.1.0
 """

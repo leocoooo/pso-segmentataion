@@ -4,13 +4,13 @@
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-`pso-segmentation` is a PSO-based package for building interpretable score segmentation models.
+`pso-segmentation` is a PSO-based package for building interpretable segmentations on any continuous variable.
 
 ## Overview
 
 The package gives you a compact way to:
 
-- optimize cut points on continuous scores
+- optimize cut points on continuous variables
 - enforce business constraints such as monotonicity and segment size
 - select the number of segments with a dedicated helper
 - export results and persist optimizer state
@@ -37,7 +37,7 @@ import numpy as np
 from pso_segmentation import example_fitness_r2_only, segment_scores
 
 scores = np.random.uniform(0, 100, 1000)
-labels = np.random.binomial(1, 0.15, 1000)
+labels = np.random.binomial(1, 0.15, 1000)  # target (binary here)
 
 result = segment_scores(
     scores,
@@ -60,7 +60,7 @@ from pso_segmentation import (
 )
 
 scores = np.random.uniform(0, 100, 1000)
-labels = np.random.binomial(1, 0.15, 1000)
+labels = np.random.binomial(1, 0.15, 1000)  # target (binary here)
 
 config = OptimizerConfig(n_segments=5, pop_size=50, max_iter=100, seed=42)
 optimizer = SegmentationOptimizer(config)
@@ -92,8 +92,10 @@ print(selection.best_candidate.cuts)
 
 ## Documentation
 
-The full user guide lives in the `docs/` folder and the business-oriented walkthrough is in
-`notebooks/`.
+The full user guide lives in the `docs/` folder. The notebooks are intentionally limited to:
+
+- `notebooks/00_quick_start.ipynb` (generic segmentation + objective contract)
+- `notebooks/04_business_use_case.ipynb` (PD segmentation with a custom objective)
 
 ## Development
 

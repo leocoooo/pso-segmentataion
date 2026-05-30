@@ -47,7 +47,7 @@ The simplest way to use pso-segmentation is with the functional API:
    # Access results
    print(f"Best R²: {result.r2:.4f}")
    print(f"Number of segments: {result.n_segments}")
-   print(f"PD by segment: {result.pd_by_segment}")
+   print(f"Target mean by segment: {result.target_mean_by_segment}")
 
 ---
 
@@ -147,7 +147,7 @@ Configuration Options
        n_segments=5,                      # Number of segments
        min_segment_size=0.05,             # Minimum segment proportion
        max_segment_size=0.30,             # Maximum segment proportion
-       enforce_monotonic=False,           # Enforce monotonic PD
+       enforce_monotonic=False,           # Enforce monotonic target mean
 
        # PSO parameters
        pop_size=50,                       # Population size

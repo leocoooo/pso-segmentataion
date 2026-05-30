@@ -41,7 +41,7 @@ def export_segmentation_to_csv(
     scores : NDArray
         Original scores/predictions (shape: (n_samples,))
     labels : NDArray
-        Original labels (shape: (n_samples,))
+        Original target values (shape: (n_samples,))
     segment_assignments : NDArray | None, optional
         Segment assignment for each observation (shape: (n_samples,))
         If None, computed from cuts and scores. Default: None
@@ -117,7 +117,7 @@ def export_segmentation_to_csv(
             continue
         proportion = n_obs_val / len(scores)
         labels_segment = labels[mask]
-        pd_rate = float(labels_segment.mean()) if n_obs_val > 0 else 0.0
+        target_mean = float(labels_segment.mean()) if n_obs_val > 0 else 0.0
         min_score = float(scores[mask].min())
         max_score = float(scores[mask].max())
 
@@ -126,7 +126,8 @@ def export_segmentation_to_csv(
                 "segment": seg,
                 "n_observations": n_obs_val,
                 "proportion": float(proportion),
-                "pd_rate": pd_rate,
+                "pd_rate": target_mean,
+                "target_mean": target_mean,
                 "min_score": min_score,
                 "max_score": max_score,
             }
@@ -164,7 +165,7 @@ def import_segmentation_from_csv(
     tuple[NDArray, NDArray, NDArray, NDArray]
         (scores, labels, segments, cuts)
         - scores: Original scores (shape: (n_samples,))
-        - labels: Original labels (shape: (n_samples,))
+        - labels: Original target values (shape: (n_samples,))
         - segments: Segment assignments (shape: (n_samples,))
         - cuts: Cut boundaries (shape: (n_cuts,)) or empty if not provided
 
@@ -333,6 +334,7 @@ def export_metrics_to_json(
         "h_intra": float(result.h_intra),
         "segment_proportions": result.segment_proportions.tolist(),
         "pd_by_segment": result.pd_by_segment.tolist(),
+        "target_mean_by_segment": result.pd_by_segment.tolist(),
         "segment_sizes": result.segment_sizes.tolist(),
     }
 
