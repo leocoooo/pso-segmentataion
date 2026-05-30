@@ -7,8 +7,8 @@ PSO Segmentation - Documentation
 .. image:: https://img.shields.io/badge/python-3.12+-blue
    :alt: Python 3.12+
 
-.. image:: https://img.shields.io/badge/coverage-97%25-brightgreen
-   :alt: Test Coverage 97%
+.. image:: https://img.shields.io/badge/coverage-95%25-brightgreen
+   :alt: Test Coverage 95%
 
 .. image:: https://img.shields.io/badge/type_checking-strict-blue
    :alt: Type Checking (mypy --strict)
@@ -49,7 +49,7 @@ Features
 - **Custom PSO Engine** - Lightweight, no dependencies on scikit-opt
 - **Dual API** - Object-oriented interface + simple functional API
 - **Type Safety** - Full mypy --strict compliance
-- **Comprehensive Testing** - 150 tests, 97% coverage
+- **Comprehensive Testing** - 157 tests, 95% coverage
 - **Production Ready** - Clean architecture, comprehensive documentation
 
 🎯 **Key Components:**
@@ -119,9 +119,9 @@ Project Statistics
    * - Metric
      - Value
    * - Total Tests
-     - 150/150 (100%)
+     - 157/157 (100%)
    * - Coverage
-     - 97%
+     - 95%
    * - Lines of Code
      - ~1,900
    * - Type Errors
