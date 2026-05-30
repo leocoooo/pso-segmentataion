@@ -174,9 +174,6 @@ Data Structures
        w: float = 0.7
        c1: float = 1.5
        c2: float = 1.5
-       min_segment_size: float = 0.05
-       max_segment_size: float = 0.30
-       enforce_monotonic: bool = False
        track_history: bool = True
        seed: int | None = None
 

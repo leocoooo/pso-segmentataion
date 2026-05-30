@@ -144,18 +144,17 @@ class TestSegmentScoresWithConfig:
             assert isinstance(result, SegmentationResult)
             assert 0.0 <= result.r2 <= 1.0
 
-    def test_segment_scores_with_monotonic_constraint(
+    def test_segment_scores_with_monotonic_fitness(
         self, simple_data: tuple[np.ndarray, np.ndarray]
     ) -> None:
-        """Test segment_scores with monotonic constraint enabled."""
+        """Test segment_scores with monotonicity handled by the objective."""
         scores, labels = simple_data
-        config = OptimizerConfig(enforce_monotonic=True)
+        config = OptimizerConfig()
 
         def fitness(cuts: np.ndarray) -> float:
-            return example_fitness_r2_only(cuts, scores, labels)
+            return example_fitness_r2_with_monotonic_penalty(cuts, scores, labels)
 
         result = segment_scores(scores, labels, fitness, config)
-        # Check monotonicity
         assert result.is_monotonic_increasing() or result.is_monotonic_decreasing()
 
 

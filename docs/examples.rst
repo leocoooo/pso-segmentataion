@@ -109,7 +109,6 @@ For more control, use the ``SegmentationOptimizer`` class:
        w=0.7,
        c1=1.5,
        c2=1.5,
-       enforce_monotonic=False,  # Handled in fitness function
        track_history=True,
        seed=42,
    )

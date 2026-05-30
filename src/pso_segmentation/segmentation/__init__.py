@@ -1,7 +1,7 @@
 """Segmentation module for PSO optimization.
 
 Provides core functionality for segmentation: metrics computation,
-validation, and constraint checking.
+boundary validation, and stability checks.
 """
 
 from .computation import compute_metrics, get_segment_assignments
@@ -14,7 +14,6 @@ from .metrics import (
 from .validation import (
     check_segment_stability,
     validate_cuts,
-    validate_segmentation,
 )
 
 __all__ = [
@@ -22,7 +21,6 @@ __all__ = [
     "compute_metrics",
     "get_segment_assignments",
     "validate_cuts",
-    "validate_segmentation",
     "check_segment_stability",
     "DEFAULT_MIN_SEGMENT_SIZE",
     "DEFAULT_MAX_SEGMENT_SIZE",

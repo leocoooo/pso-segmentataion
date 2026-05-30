@@ -145,9 +145,6 @@ Configuration Options
    config = OptimizerConfig(
        # Segmentation parameters
        n_segments=5,                      # Number of segments
-       min_segment_size=0.05,             # Minimum segment proportion
-       max_segment_size=0.30,             # Maximum segment proportion
-       enforce_monotonic=False,           # Enforce monotonic target mean
 
        # PSO parameters
        pop_size=50,                       # Population size
@@ -156,7 +153,6 @@ Configuration Options
        c1=1.5,                            # Cognitive parameter
        c2=1.5,                            # Social parameter
 
-       # Other
        track_history=True,                # Track optimization history
        seed=None,                         # Random seed (None = random)
    )

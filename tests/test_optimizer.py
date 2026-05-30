@@ -45,9 +45,6 @@ class TestOptimizerConfig:
         assert config.w == 0.7
         assert config.c1 == 1.5
         assert config.c2 == 1.5
-        assert config.min_segment_size == 0.05
-        assert config.max_segment_size == 0.30
-        assert config.enforce_monotonic is True
         assert config.track_history is True
         assert config.seed is None
 
@@ -396,10 +393,8 @@ class TestSegmentationOptimizer:
         config = OptimizerConfig(
             n_segments=5,
             pop_size=40,
-            min_segment_size=0.1,
         )
         optimizer = SegmentationOptimizer(config)
 
         assert optimizer.config.n_segments == 5
         assert optimizer.config.pop_size == 40
-        assert optimizer.config.min_segment_size == 0.1

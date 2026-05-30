@@ -7,19 +7,16 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 from typing import Any
 
 import numpy as np
 
 from pso_segmentation.core import PSO, PSO_Result
 from pso_segmentation.segmentation import (
-    DEFAULT_MAX_SEGMENT_SIZE,
-    DEFAULT_MIN_SEGMENT_SIZE,
     SegmentationResult,
     compute_metrics,
     get_segment_assignments,
-    validate_segmentation,
 )
 
 # Type alias for type hints
@@ -44,12 +41,6 @@ class OptimizerConfig:
         PSO cognitive coefficient
     c2 : float, default=1.5
         PSO social coefficient
-    min_segment_size : float, default=0.05
-        Minimum segment proportion
-    max_segment_size : float, default=0.30
-        Maximum segment proportion
-    enforce_monotonic : bool, default=True
-        Enforce monotonic increasing target-mean constraint
     track_history : bool, default=True
         Track optimization history
     seed : int | None, default=None
@@ -62,9 +53,6 @@ class OptimizerConfig:
     w: float = 0.7
     c1: float = 1.5
     c2: float = 1.5
-    min_segment_size: float = DEFAULT_MIN_SEGMENT_SIZE
-    max_segment_size: float = DEFAULT_MAX_SEGMENT_SIZE
-    enforce_monotonic: bool = True
     track_history: bool = True
     seed: int | None = None
 
@@ -73,7 +61,7 @@ class SegmentationOptimizer:
     """PSO-based segmentation optimizer.
 
     Main API for optimizing score segmentation using Particle Swarm Optimization.
-    Finds optimal cut boundaries to maximize R² while respecting business constraints.
+    Finds optimal cut boundaries to maximize a user-defined objective function.
 
     Examples
     --------
@@ -295,25 +283,6 @@ class SegmentationOptimizer:
                 f"Size={segment_pct:.2f}% (n={int(metrics.segment_sizes[i])})"
             )
 
-        # Check constraints
-        is_valid, msg = validate_segmentation(
-            metrics,
-            self.config.min_segment_size,
-            self.config.max_segment_size,
-            self.config.enforce_monotonic,
-        )
-
-        lines.extend(
-            [
-                "",
-                "Constraint Validation:",
-                f"  Valid: {is_valid}",
-            ]
-        )
-
-        if not is_valid:
-            lines.append(f"  Issue: {msg}")
-
         lines.append("=" * 60)
 
         return "\n".join(lines)
@@ -404,7 +373,10 @@ class SegmentationOptimizer:
             data = json.loads(json_str)
 
         # Reconstruct config
-        config_dict = data.get("config", {})
+        config_keys = {field.name for field in fields(OptimizerConfig)}
+        config_dict = {
+            key: value for key, value in data.get("config", {}).items() if key in config_keys
+        }
         config = OptimizerConfig(**config_dict)
 
         # Create optimizer instance

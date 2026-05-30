@@ -23,9 +23,9 @@ def test_select_n_segments_accepts_inclusive_tuple_range(
 ) -> None:
     """A tuple range should be interpreted as inclusive."""
     scores, labels = simple_data
-    config = OptimizerConfig(pop_size=8, max_iter=5, seed=42, enforce_monotonic=False)
+    config = OptimizerConfig(pop_size=8, max_iter=5, seed=42)
 
-    result = select_n_segments(scores, labels, (2, 4), base_config=config, require_valid=False)
+    result = select_n_segments(scores, labels, (2, 4), base_config=config)
 
     assert isinstance(result, SegmentSelectionResult)
     assert [candidate.n_segments for candidate in result.candidates] == [2, 3, 4]
@@ -55,14 +55,13 @@ def test_select_n_segments_accepts_custom_objective_factory(
 
         return objective
 
-    config = OptimizerConfig(pop_size=8, max_iter=5, seed=7, enforce_monotonic=False)
+    config = OptimizerConfig(pop_size=8, max_iter=5, seed=7)
     result = select_n_segments(
         scores,
         labels,
         [2, 4],
         objective_factory=objective_factory,
         base_config=config,
-        require_valid=False,
     )
 
     assert seen_n_segments == [2, 4]
@@ -90,7 +89,7 @@ def test_select_n_segments_expands_param_grid(
 
         return objective
 
-    config = OptimizerConfig(pop_size=8, max_iter=5, seed=13, enforce_monotonic=False)
+    config = OptimizerConfig(pop_size=8, max_iter=5, seed=13)
     result = select_n_segments(
         scores,
         labels,
@@ -98,7 +97,6 @@ def test_select_n_segments_expands_param_grid(
         objective_factory=objective_factory,
         base_config=config,
         param_grid={"penalty": [0.0, 0.1], "weight": [1.0, 2.0]},
-        require_valid=False,
     )
 
     assert len(result.candidates) == 8
@@ -126,7 +124,7 @@ def test_select_n_segments_can_use_custom_selection_func(
 ) -> None:
     """A custom selection function should control the final best candidate."""
     scores, labels = simple_data
-    config = OptimizerConfig(pop_size=8, max_iter=5, seed=11, enforce_monotonic=False)
+    config = OptimizerConfig(pop_size=8, max_iter=5, seed=11)
 
     result = select_n_segments(
         scores,
@@ -134,7 +132,6 @@ def test_select_n_segments_can_use_custom_selection_func(
         (2, 4),
         base_config=config,
         selection_func=lambda candidate: -float(candidate.n_segments),
-        require_valid=False,
     )
 
     assert result.best_n_segments == 2
@@ -150,19 +147,41 @@ def test_select_n_segments_rejects_invalid_range(
         select_n_segments(scores, labels, [1])
 
 
-def test_select_n_segments_requires_valid_candidate_by_default(
+def test_select_n_segments_accepts_validation_func(
     simple_data: tuple[np.ndarray, np.ndarray],
 ) -> None:
-    """The selector should fail clearly when every candidate violates constraints."""
+    """A custom validation function should control candidate validity."""
     scores, labels = simple_data
-    config = OptimizerConfig(
-        pop_size=8,
-        max_iter=5,
-        seed=42,
-        min_segment_size=0.60,
-        max_segment_size=0.70,
-        enforce_monotonic=False,
+    config = OptimizerConfig(pop_size=8, max_iter=5, seed=42)
+
+    result = select_n_segments(
+        scores,
+        labels,
+        (2, 4),
+        base_config=config,
+        validation_func=lambda candidate: (
+            candidate.n_segments == 3,
+            "accepted" if candidate.n_segments == 3 else "only 3 segments accepted",
+        ),
     )
 
+    assert result.best_n_segments == 3
+    assert [candidate.n_segments for candidate in result.valid_candidates] == [3]
+    assert all(candidate.validation_message for candidate in result.candidates)
+
+
+def test_select_n_segments_requires_valid_candidate_when_validation_func_rejects_all(
+    simple_data: tuple[np.ndarray, np.ndarray],
+) -> None:
+    """The selector should fail clearly when a custom validator rejects every candidate."""
+    scores, labels = simple_data
+    config = OptimizerConfig(pop_size=8, max_iter=5, seed=42)
+
     with pytest.raises(RuntimeError, match="No valid segmentation"):
-        select_n_segments(scores, labels, (2, 3), base_config=config)
+        select_n_segments(
+            scores,
+            labels,
+            (2, 3),
+            base_config=config,
+            validation_func=lambda _candidate: (False, "rejected"),
+        )

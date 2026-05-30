@@ -48,7 +48,6 @@ def segment_scores(
         - pop_size=30
         - max_iter=100
         - w, c1, c2: standard PSO parameters
-        - enforce_monotonic=True (used during validation)
         Default: None
 
     Returns

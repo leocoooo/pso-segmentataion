@@ -2,7 +2,7 @@
 
 This module provides a thin orchestration layer on top of
 SegmentationOptimizer. It selects the number of segments by fitting one
-optimizer per candidate segment count, then choosing the best valid result.
+optimizer per candidate segment count, then choosing the best result.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ import numpy as np
 
 from pso_segmentation.objective_functions_examples import example_fitness_r2_only
 from pso_segmentation.optimizer import OptimizerConfig, SegmentationOptimizer
-from pso_segmentation.segmentation import SegmentationResult, validate_segmentation
+from pso_segmentation.segmentation import SegmentationResult
 
 NDArray = np.ndarray[Any, np.dtype[np.float64]]
 ObjectiveFunc = Callable[[NDArray], float]
@@ -24,6 +24,7 @@ ParamSet = dict[str, Any]
 ParamGrid = Mapping[str, Iterable[Any]]
 ObjectiveFactory = Callable[[NDArray, NDArray, int, ParamSet], ObjectiveFunc]
 SelectionMetric = Literal["r2", "gini", "ks"]
+ValidationFunc = Callable[["SegmentCandidate"], tuple[bool, str]]
 
 
 @dataclass
@@ -64,7 +65,7 @@ class SegmentSelectionResult:
 
     @property
     def valid_candidates(self) -> list[SegmentCandidate]:
-        """Candidates that satisfy the configured validation constraints."""
+        """Candidates accepted by the optional validation callback."""
         return [candidate for candidate in self.candidates if candidate.valid]
 
 
@@ -131,6 +132,7 @@ def select_n_segments(
     param_grid: ParamGrid | None = None,
     selection_metric: SelectionMetric = "r2",
     selection_func: Callable[[SegmentCandidate], float] | None = None,
+    validation_func: ValidationFunc | None = None,
     require_valid: bool = True,
 ) -> SegmentSelectionResult:
     """Select the best number of segments over a candidate range.
@@ -160,9 +162,13 @@ def select_n_segments(
     selection_func : callable, optional
         Custom final scoring function with signature ``selection_func(candidate)``.
         Use this for business-level model selection criteria.
+    validation_func : callable, optional
+        Optional candidate validation callback with signature
+        ``validation_func(candidate) -> (is_valid, message)``. If omitted, all
+        fitted candidates are considered valid.
     require_valid : bool, default=True
-        If True, only candidates that pass ``validate_segmentation`` can be
-        selected. If no candidate is valid, raises RuntimeError.
+        If True and ``validation_func`` is provided, only candidates that pass
+        the callback can be selected. If no candidate is valid, raises RuntimeError.
 
     Returns
     -------
@@ -199,12 +205,6 @@ def select_n_segments(
 
             metrics = optimizer.get_metrics()
             cuts = optimizer.get_cuts()
-            valid, validation_message = validate_segmentation(
-                metrics,
-                min_segment_size=config.min_segment_size,
-                max_segment_size=config.max_segment_size,
-                monotonic=config.enforce_monotonic,
-            )
             candidate = SegmentCandidate(
                 n_segments=n_segments,
                 params=params.copy(),
@@ -212,9 +212,11 @@ def select_n_segments(
                 metrics=metrics,
                 cuts=cuts,
                 selection_score=0.0,
-                valid=valid,
-                validation_message=validation_message,
+                valid=True,
+                validation_message="No validation function provided",
             )
+            if validation_func is not None:
+                candidate.valid, candidate.validation_message = validation_func(candidate)
             if selection_func is None:
                 candidate.selection_score = _metric_score(metrics, selection_metric)
             else:

@@ -9,7 +9,6 @@ from pso_segmentation.segmentation import (
     compute_metrics,
     get_segment_assignments,
     validate_cuts,
-    validate_segmentation,
 )
 
 
@@ -302,92 +301,6 @@ class TestValidateCuts:
 
         assert is_valid is False
         assert "empty" in msg
-
-
-class TestValidateSegmentation:
-    """Test validate_segmentation function."""
-
-    @pytest.fixture
-    def valid_result(self) -> SegmentationResult:
-        """Create a valid SegmentationResult."""
-        return SegmentationResult(
-            r2=0.75,
-            n_segments=4,
-            pd_by_segment=np.array([0.1, 0.2, 0.25, 0.3]),
-            segment_sizes=np.array([60, 80, 80, 80]),
-            segment_proportions=np.array([0.20, 0.27, 0.27, 0.26]),  # All in range
-            h_inter=0.05,
-            h_intra=0.15,
-        )
-
-    def test_validate_segmentation_valid(self, valid_result: SegmentationResult) -> None:
-        """Test validate_segmentation with valid result."""
-        is_valid, msg = validate_segmentation(valid_result)
-
-        assert is_valid is True
-
-    def test_validate_segmentation_too_small(self) -> None:
-        """Test validate_segmentation fails for too small segment."""
-        result = SegmentationResult(
-            r2=0.75,
-            n_segments=3,
-            pd_by_segment=np.array([0.1, 0.2, 0.3]),
-            segment_sizes=np.array([1, 100, 100]),
-            segment_proportions=np.array([0.005, 0.5, 0.495]),  # min < 0.05
-            h_inter=0.05,
-            h_intra=0.15,
-        )
-        is_valid, msg = validate_segmentation(result)
-
-        assert is_valid is False
-        assert "Minimum" in msg
-
-    def test_validate_segmentation_too_large(self) -> None:
-        """Test validate_segmentation fails for too large segment."""
-        result = SegmentationResult(
-            r2=0.75,
-            n_segments=3,
-            pd_by_segment=np.array([0.1, 0.2, 0.3]),
-            segment_sizes=np.array([200, 100, 100]),
-            segment_proportions=np.array([0.5, 0.25, 0.25]),  # max > 0.30
-            h_inter=0.05,
-            h_intra=0.15,
-        )
-        is_valid, msg = validate_segmentation(result)
-
-        assert is_valid is False
-        assert "Maximum" in msg
-
-    def test_validate_segmentation_not_monotonic(self) -> None:
-        """Test validate_segmentation fails for non-monotonic."""
-        result = SegmentationResult(
-            r2=0.75,
-            n_segments=3,
-            pd_by_segment=np.array([0.1, 0.3, 0.2]),  # Not monotonic
-            segment_sizes=np.array([100, 100, 100]),
-            segment_proportions=np.array([0.33, 0.33, 0.34]),
-            h_inter=0.05,
-            h_intra=0.15,
-        )
-        is_valid, msg = validate_segmentation(result, monotonic=True)
-
-        assert is_valid is False
-
-    def test_validate_segmentation_custom_constraints(self) -> None:
-        """Test validate_segmentation with custom constraints."""
-        result = SegmentationResult(
-            r2=0.75,
-            n_segments=3,
-            pd_by_segment=np.array([0.1, 0.2, 0.3]),
-            segment_sizes=np.array([30, 40, 30]),
-            segment_proportions=np.array([0.30, 0.40, 0.30]),
-            h_inter=0.05,
-            h_intra=0.15,
-        )
-        # Stricter constraints - max 0.35 fails because result has 0.40
-        is_valid, msg = validate_segmentation(result, min_segment_size=0.20, max_segment_size=0.35)
-
-        assert is_valid is False
 
 
 class TestCheckSegmentStability:

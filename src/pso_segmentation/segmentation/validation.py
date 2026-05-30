@@ -1,19 +1,10 @@
-"""Validation functions for segmentation boundaries.
-
-This module provides functions to validate segment boundaries (cuts) and
-check constraints on segmentation results.
-"""
+"""Validation functions for segmentation boundaries."""
 
 from __future__ import annotations
 
 import numpy as np
 
-from .metrics import (
-    DEFAULT_MAX_SEGMENT_SIZE,
-    DEFAULT_MIN_SEGMENT_SIZE,
-    NDArray,
-    SegmentationResult,
-)
+from .metrics import NDArray, SegmentationResult
 
 
 def validate_cuts(
@@ -75,60 +66,6 @@ def validate_cuts(
             return False, "Duplicate cuts detected"
 
     return True, "Cuts are valid"
-
-
-def validate_segmentation(
-    result: SegmentationResult,
-    min_segment_size: float = DEFAULT_MIN_SEGMENT_SIZE,
-    max_segment_size: float = DEFAULT_MAX_SEGMENT_SIZE,
-    monotonic: bool = True,
-) -> tuple[bool, str]:
-    """Validate segmentation result against business constraints.
-
-    Parameters
-    ----------
-    result : SegmentationResult
-        Segmentation result to validate
-    min_segment_size : float, default=0.05
-        Minimum allowed segment proportion
-    max_segment_size : float, default=0.30
-        Maximum allowed segment proportion
-    monotonic : bool, default=True
-        Whether to require monotonicity (increasing target mean with score)
-
-    Returns
-    -------
-    tuple[bool, str]
-        (is_valid, message) - Boolean validity and descriptive message
-
-    Examples
-    --------
-    >>> result = compute_metrics(scores, labels, cuts)
-    >>> is_valid, msg = validate_segmentation(result)
-    >>> if not is_valid:
-    ...     print(f"Validation failed: {msg}")
-    """
-    # Check segment size constraints
-    min_prop = result.min_segment_proportion()
-    max_prop = result.max_segment_proportion()
-
-    if min_prop < min_segment_size:
-        return (
-            False,
-            f"Minimum segment proportion ({min_prop:.4f}) < {min_segment_size:.4f}",
-        )
-
-    if max_prop > max_segment_size:
-        return (
-            False,
-            f"Maximum segment proportion ({max_prop:.4f}) > {max_segment_size:.4f}",
-        )
-
-    # Check monotonicity if required
-    if monotonic and not result.is_monotonic_increasing():
-        return False, "Segmentation is not monotonic increasing (target mean should increase)"
-
-    return True, "Segmentation is valid"
 
 
 def check_segment_stability(

@@ -11,7 +11,7 @@
 The package gives you a compact way to:
 
 - optimize cut points on continuous variables
-- enforce business constraints such as monotonicity and segment size
+- encode business-specific constraints inside custom objective functions
 - select the number of segments with a dedicated helper
 - export results and persist optimizer state
 - compare candidates with a business-specific selection function
