@@ -15,6 +15,13 @@ from pso_segmentation.io import (
     load_optimizer_state,
     save_optimizer_state,
 )
+from pso_segmentation.objective import (
+    ObjectiveContext,
+    empty_segment_penalty,
+    make_objective,
+    monotonic_penalty,
+    segment_size_penalty,
+)
 from pso_segmentation.objective_functions_examples import (
     example_fitness_custom_business_metric,
     example_fitness_gini_focused,
@@ -45,6 +52,11 @@ __all__ = [
     "SegmentCandidate",
     "SegmentSelectionResult",
     "select_n_segments",
+    "ObjectiveContext",
+    "make_objective",
+    "monotonic_penalty",
+    "segment_size_penalty",
+    "empty_segment_penalty",
     "example_fitness_r2_only",
     "example_fitness_r2_with_monotonic_penalty",
     "example_fitness_r2_with_balance_penalty",
