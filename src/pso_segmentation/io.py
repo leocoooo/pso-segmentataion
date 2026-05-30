@@ -31,8 +31,9 @@ def export_segmentation_to_csv(
 ) -> dict[str, str]:
     """Export segmentation results to CSV files.
 
-    Saves segmentation cuts, data with assignments, and metrics to CSV files.
-    Useful for auditing, analysis, and sharing results.
+    Saves segmentation cuts, data with assignments, and segment-level metrics
+    to CSV files. The metrics file includes ``target_mean`` for generic use
+    cases and ``pd_rate`` as a backward-compatible alias.
 
     Parameters
     ----------
@@ -138,8 +139,8 @@ def export_segmentation_to_csv(
                 "segment": seg,
                 "n_observations": n_obs_val,
                 "proportion": float(proportion),
-                "pd_rate": target_mean,
                 "target_mean": target_mean,
+                "pd_rate": target_mean,
                 "min_score": min_score,
                 "max_score": max_score,
             }

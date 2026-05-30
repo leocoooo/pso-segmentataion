@@ -106,6 +106,7 @@ class TestExportSegmentationToCsv:
                 "segment",
                 "n_observations",
                 "proportion",
+                "target_mean",
                 "pd_rate",
                 "min_score",
                 "max_score",
