@@ -136,3 +136,6 @@ dmypy.json
 
 # Specs and documentation drafts
 specs/
+
+#old notebooks
+notebooks/old/
